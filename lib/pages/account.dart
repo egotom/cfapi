@@ -19,11 +19,11 @@ class _AccountState extends State<Account> {
   }
   save(String tel, pass) async {
     SharedPreferences spf = await SharedPreferences.getInstance();
-    await Provider.of<User>(context, listen: false).login('',tel,pass);
-    String token=Provider.of<User>(context, listen: false).getToken;
-    if(token!=null) {
+    await Provider.of<User>(context, listen: false).login(tel,pass);
+    User user=Provider.of<User>(context, listen: false);
+    if(user!=null) {
         setState(() {_isLoading = false;});
-        spf.setString("token",token);
+        spf.setString("token",user.token);
         //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => Home()), (Route<dynamic> route) => false);
     }
     else {

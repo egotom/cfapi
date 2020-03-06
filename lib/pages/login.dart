@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'home.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -10,7 +8,10 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _isLoading = false;
+  final TextEditingController _userCtl = TextEditingController();
+  final TextEditingController _passwdCtl = TextEditingController();
+  bool _Loading=false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,9 +22,7 @@ class _LoginState extends State<Login> {
           Row(
             children: <Widget>[
               FlatButton(
-                onPressed: (){
-                  Navigator.pushReplacementNamed(context, '/register');
-                }, 
+                onPressed: ()=>Navigator.pushReplacementNamed(context, '/register'), 
                 child: Text('注册账号', style:TextStyle(color:Colors.white)),
               )
             ],
@@ -31,79 +30,67 @@ class _LoginState extends State<Login> {
         ],
       ),
       body: Container(
-        child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView(
-          children: <Widget>[
-            textSection(),
-            buttonSection(),
-          ],
+          child: _Loading? Center(child: CircularProgressIndicator()) :ListView(
+            children: <Widget>[              
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
+                child: Column(
+                  children: <Widget>[                    
+                    TextFormField(
+                      controller: _userCtl,
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.phone, color: Colors.green),
+                        hintText: "电话号码/姓名",
+                        border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
+                        hintStyle: TextStyle(color: Colors.grey),
+                      )
+                    ),
+                    SizedBox(height: 30.0),
+                    TextFormField(
+                      controller: _passwdCtl,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.lock, color: Colors.green),
+                        hintText: "密码",
+                        border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
+                        hintStyle: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 40.0,
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                margin: EdgeInsets.only(top: 15.0),
+                child: RaisedButton(
+                  onPressed: signIn,
+                  elevation: 0.0,
+                  child: Text("登 录", style: TextStyle(color: Colors.white,fontSize: 18.0)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
     );
   }
 
-  signIn(String tel, pass) async {
-    SharedPreferences spf = await SharedPreferences.getInstance();
-    await Provider.of<User>(context, listen: false).login('',tel,pass);
-    String token=Provider.of<User>(context, listen: false).getToken;
-    if(token!=null) {
-        setState(() {_isLoading = false;});
-        spf.setString("token",token);
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => Home()), (Route<dynamic> route) => false);
-    }
-    else {
-      setState(() {_isLoading = false;});
-      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => Login()), (Route<dynamic> route) => false);
-    }
+  signIn(){
+    //setState(() {_Loading = true;});
+    print(_userCtl.text);
+    print(_passwdCtl.text);
+    //Navigator.pushReplacementNamed(context, '/home');
+    //Scaffold.of(context).showSnackBar(SnackBar(content: Text('dfdfdsf')));
+    //String rst=await Provider.of<User>(context, listen: false).login(_userCtl.text,_passwdCtl.text);
+    //if(rst=='true') {
+    //  setState(() {_Loading = false;});
+    //  Navigator.pushReplacementNamed(context, '/home');
+    //}else {
+    //  setState(() {_Loading = false;});
+    //  Scaffold.of(context).showSnackBar(SnackBar(content: Text(rst)));
+    //}
   }
 
-  Container buttonSection() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: 40.0,
-      padding: EdgeInsets.symmetric(horizontal: 15.0),
-      margin: EdgeInsets.only(top: 15.0),
-      child: RaisedButton(
-        onPressed: teleController.text == "" || passwordController.text == "" ? null : () {
-          setState(() {_isLoading = true;});
-          signIn(teleController.text, passwordController.text);
-        },
-        elevation: 0.0,
-        child: Text("登 录", style: TextStyle(color: Colors.white,fontSize: 18.0)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-      ),
-    );
-  }
-
-  final TextEditingController teleController = new TextEditingController();
-  final TextEditingController passwordController = new TextEditingController();
-
-  Container textSection() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-      child: Column(
-        children: <Widget>[
-          TextFormField(
-            controller: teleController,
-            decoration: InputDecoration(
-              icon: Icon(Icons.phone, color: Colors.green),
-              hintText: "电话号码",
-              border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
-              hintStyle: TextStyle(color: Colors.grey),
-            ),
-          ),
-          SizedBox(height: 30.0),
-          TextFormField(
-            controller: passwordController,
-            obscureText: true,
-            decoration: InputDecoration(
-              icon: Icon(Icons.lock, color: Colors.green),
-              hintText: "密码",
-              border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
-              hintStyle: TextStyle(color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

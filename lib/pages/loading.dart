@@ -9,12 +9,12 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
-  void setupUser() async{
-    if(await Provider.of<User>(context, listen: false).getUser()){
+  void setupUser() async{    
+	  bool ok=await Provider.of<User>(context, listen: false).getUser();
+    if(ok){
       Navigator.pushReplacementNamed(context, '/home');
     }else{
-      //Navigator.pushReplacementNamed(context, '/login');
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
 

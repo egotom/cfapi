@@ -13,18 +13,9 @@ class User extends ChangeNotifier{
   String token;
   String name;
   String team;
+  String tel;
 
-  String get getName =>  name;
-  String get getTeam => team;
-  String get getToken => token;
-
-  void sName(String n,t) {
-    name = n;
-    team = t;
-    notifyListeners();
-  }
-
-  User({this.vid,this.oid,this.did,this.tid,this.uid,this.token,this.name,this.team});
+  User({this.vid,this.oid,this.did,this.tid,this.uid,this.token,this.name,this.team,this.tel});
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       vid: json['vid'],
@@ -35,6 +26,7 @@ class User extends ChangeNotifier{
       token: json['token'],
       name: json['name'],
       team: json['team'],
+      tel: json['tel']
     );
   }
 
@@ -46,7 +38,7 @@ class User extends ChangeNotifier{
         'Accept': 'application/json',
         'xtoken': spf.getString("token")
       };
-      Response rsp = await get(host[0]+'/login',headers:headers);
+      Response rsp = await get(host[0]+'/login',headers:headers).timeout(const Duration(seconds: 3));
       Map data = jsonDecode(rsp.body);
       vid=data["vid"];
       oid=data["oid"];
@@ -56,6 +48,9 @@ class User extends ChangeNotifier{
       token=data["xtoken"];
       name=data["name"];
       team=data["team"];
+      tel=data["tel"];
+      spf.setString('token', token);
+      spf.setString('tel', tel);
       notifyListeners();
       return true;
     }
@@ -66,9 +61,10 @@ class User extends ChangeNotifier{
     }
   }
 
-  Future<String> login(String name, String tel, String passwd) async{
-    try{
-      Response rsp = await post(host[0]+'/login',body:{'name':name,'tel':tel,'passwd':passwd});
+  Future<String> login(String user, String passwd) async{
+    SharedPreferences spf = await SharedPreferences.getInstance(); 
+    Response rsp = await post(host[0]+'/login',body:{'user':user,'passwd':passwd});
+    if (rsp.statusCode == 200) {
       Map data = jsonDecode(rsp.body);
       vid=data["vid"];
       oid=data["oid"];
@@ -78,13 +74,13 @@ class User extends ChangeNotifier{
       token=data["xtoken"];
       name=data["name"];
       team=data["team"];
+      tel=data["tel"];
+      spf.setString('token', token);
+      spf.setString('tel', tel);
       notifyListeners();
       return 'true';
-    }
-    catch(e){
-      print(e);
-      notifyListeners();
-      return e.toString();
+    }else{
+      return 'false';
     }
   }
 }
