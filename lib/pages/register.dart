@@ -33,65 +33,60 @@ class _RegisterState extends State<Register> {
           ),
         ],
       ),
-      body: Container(
-        child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView(
-          children: <Widget>[
-            textSection(),
-            buttonSection(),
-          ],
+      body: Builder(
+        builder: (context) =>Container(
+          child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView(
+            children: <Widget>[
+              textSection(),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 40.0,
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                margin: EdgeInsets.only(top: 15.0),
+                child: RaisedButton(
+                  onPressed: () {
+                    setState(() {_isLoading = true;});
+                    register(context,_name, _tel, _passwd);
+                  },
+                  color: Colors.blue,
+                  elevation: 0.0,
+                  child: Text("注 册", style: TextStyle(fontSize: 18.0,fontWeight: FontWeight.bold,color: Colors.white)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  register(String name, tel, pass) async {
+  register(BuildContext context,String name, tel, pass) async {
     if (_registerFormKey.currentState.validate()) {
       _registerFormKey.currentState.save();
       _isLoading = true;
-      Response rsp = await post(host[0]+'/login',body:{'name':_name,'tel':_tel,'passwd':_passwd}).timeout(const Duration(seconds: 3));
-      _isLoading = false;
-      if(rsp.statusCode==200){
-        Scaffold.of(context).showSnackBar(SnackBar(content: Text('注册成功！')));
+      try{
+        Response rsp = await post(host[3]+'/register',body:{'name':_name,'tel':_tel,'passwd':_passwd}).timeout(const Duration(seconds: 3));
+        _isLoading = false;
+        if(rsp.statusCode==200){
+          Map data = jsonDecode(rsp.body);
+          if(data['error']==0){
+            Scaffold.of(context).showSnackBar(SnackBar(content: Text('注册成功！')));
+            Future.delayed(Duration(seconds: 5))
+              .then((onValue) => Navigator.pushReplacementNamed(context, '/login'));
+          }else
+            Scaffold.of(context).showSnackBar(SnackBar(content: Text(data['msg'])));
+          
+        }
+        else
+          Scaffold.of(context).showSnackBar(SnackBar(content: Text('注册失败，请联系管理员。')));
+        
+      }catch(e){
+        Scaffold.of(context).showSnackBar(SnackBar(content: Text('网络连接超时，设备没有链接到网络？')));
       }
-      else{
-        Scaffold.of(context).showSnackBar(SnackBar(content: Text('注册失败，请联系管理员。')));
-      }
-    } else {
-      setState(() {
-        _autovalidate = true;
-      });
-    }
-
-    SharedPreferences spf = await SharedPreferences.getInstance();
-    await Provider.of<User>(context, listen: false).login(tel,pass);
-    User user=Provider.of<User>(context, listen: false);
-    if(user!=null) {
-      setState(() {_isLoading = false;});
-      spf.setString("token",user.token);
-      //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => Home()), (Route<dynamic> route) => false);
-    }
-    else {
-      setState(() {_isLoading = false;});
-      //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => Login()), (Route<dynamic> route) => false);
-    }
-  }
-
-  Container buttonSection() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: 40.0,
-      padding: EdgeInsets.symmetric(horizontal: 15.0),
-      margin: EdgeInsets.only(top: 15.0),
-      child: RaisedButton(
-        onPressed: () {
-          setState(() {_isLoading = true;});
-          register(_name, _tel, _passwd);
-        },
-        elevation: 0.0,
-        child: Text("注 册", style: TextStyle(color: Colors.white,fontSize: 18.0)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-      ),
-    );
+    } else 
+      setState(() {_autovalidate = true;});
+    
   }
 
   Container textSection() {
@@ -120,9 +115,10 @@ class _RegisterState extends State<Register> {
                 border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
                 hintStyle: TextStyle(color: Colors.grey),
               ),
+              keyboardType: TextInputType.number,
               onSaved: (v)=>_tel=v,
               autovalidate: _autovalidate,
-              validator: (v)=>v.length<6?'请输入正确的电话号码。':null,
+              validator: (v)=>v.length<11?'请输入正确的电话号码':null
             ),
             SizedBox(height: 30.0),
             TextFormField(

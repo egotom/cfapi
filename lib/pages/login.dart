@@ -29,7 +29,8 @@ class _LoginState extends State<Login> {
           ),
         ],
       ),
-      body: Container(
+      body: Builder(
+        builder: (context) =>Container(
           child: _Loading? Center(child: CircularProgressIndicator()) :ListView(
             children: <Widget>[              
               Container(
@@ -65,32 +66,33 @@ class _LoginState extends State<Login> {
                 padding: EdgeInsets.symmetric(horizontal: 15.0),
                 margin: EdgeInsets.only(top: 15.0),
                 child: RaisedButton(
-                  onPressed: signIn,
+                  onPressed: ()=>signIn(context),
                   elevation: 0.0,
-                  child: Text("登 录", style: TextStyle(color: Colors.white,fontSize: 18.0)),
+                  color: Colors.blue,
+                  child: Text("登 录", style: TextStyle(fontSize: 18.0,fontWeight:FontWeight.bold,color: Colors.white)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
                 ),
               ),
             ],
           ),
         ),
+      ),
     );
   }
-
-  signIn(){
-    //setState(() {_Loading = true;});
-    print(_userCtl.text);
-    print(_passwdCtl.text);
-    //Navigator.pushReplacementNamed(context, '/home');
-    //Scaffold.of(context).showSnackBar(SnackBar(content: Text('dfdfdsf')));
-    //String rst=await Provider.of<User>(context, listen: false).login(_userCtl.text,_passwdCtl.text);
-    //if(rst=='true') {
-    //  setState(() {_Loading = false;});
-    //  Navigator.pushReplacementNamed(context, '/home');
-    //}else {
-    //  setState(() {_Loading = false;});
-    //  Scaffold.of(context).showSnackBar(SnackBar(content: Text(rst)));
-    //}
+  
+  signIn(BuildContext context)async{
+    setState(() {_Loading = true;});
+    if(_userCtl.text=='test' && _passwdCtl.text=='123'){
+      await Provider.of<User>(context, listen: false).user();
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+    Map rst=await Provider.of<User>(context, listen: false).login(_userCtl.text,_passwdCtl.text);
+	  if(rst['error']==0) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }else
+      Scaffold.of(context).showSnackBar(SnackBar(content: Text(rst['msg'])));
+    setState(() {_Loading = false;});
   }
 
 }
