@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Lottery extends StatefulWidget {
   @override
@@ -34,8 +34,8 @@ class _LotteryState extends State<Lottery> {
             children: <Widget>[
               FlatButton(
                 onPressed: () async {
-                  SharedPreferences spf = await SharedPreferences.getInstance();
-                  spf.clear();
+                  final storage = new FlutterSecureStorage();
+                  await storage.deleteAll();
                   Navigator.pushReplacementNamed(context, '/login');
                 },  
                 child: Text('退出', style:TextStyle(color:Colors.white)),

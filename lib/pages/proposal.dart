@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Proposal extends StatefulWidget {
   @override
@@ -17,6 +17,8 @@ class _ProposalState extends State<Proposal> {
   }
 
   int _selectedIndex = 0;
+  final storage = new FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,8 +32,7 @@ class _ProposalState extends State<Proposal> {
             children: <Widget>[
               FlatButton(
                 onPressed: () async {
-                  SharedPreferences spf = await SharedPreferences.getInstance();
-                  spf.clear();
+                  await storage.deleteAll();
                   Navigator.pushReplacementNamed(context, '/login');
                 },  
                 child: Text('退出', style:TextStyle(color:Colors.white)),

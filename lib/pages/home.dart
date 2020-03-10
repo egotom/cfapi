@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
+import 'package:cfapi/pages/widgets/myScore.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -33,8 +35,8 @@ class _HomeState extends State<Home> {
             children: <Widget>[
               FlatButton(
                 onPressed: () async {
-                  SharedPreferences spf = await SharedPreferences.getInstance();
-                  spf.clear();
+                  final storage = new FlutterSecureStorage();
+                  await storage.deleteAll();
                   Navigator.pushReplacementNamed(context, '/login');
                 }, 
                 child: Text('退出', style:TextStyle(color:Colors.white)),
@@ -45,7 +47,7 @@ class _HomeState extends State<Home> {
       ),
 
       body: Center(child: <Widget>[
-        Text('Index 0: Home'),
+        MyScore(),
         Text('Index 1: Business'),
         Text('Index 2: School'),
       ].elementAt(_selectedIndex)),

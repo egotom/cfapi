@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
@@ -6,7 +6,6 @@ import 'package:cfapi/config/app.dart';
 
 class User extends ChangeNotifier{
   int vid;
-  int oid;
   int did;
   int tid;
   int uid;
@@ -14,14 +13,13 @@ class User extends ChangeNotifier{
   String name;
   String team;
   String tel;
-
-  User({this.vid,this.oid,this.did,this.tid,this.uid,this.token,this.name,this.team,this.tel}){
+  final storage = new FlutterSecureStorage();
+  User({this.vid,this.did,this.tid,this.uid,this.token,this.name,this.team,this.tel}){
     notifyListeners();
   }
 
   user(){
     vid=0;
-    oid=0;
     did=0;
     tid=0;
     uid=0;
@@ -35,7 +33,6 @@ class User extends ChangeNotifier{
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       vid: json['vid'],
-      oid: json['oid'],
       did: json['did'],
       tid: json['tid'],
       uid: json['uid'],
@@ -48,18 +45,16 @@ class User extends ChangeNotifier{
 
   Future<Map<String,dynamic>> getUser() async{
     try{
-      SharedPreferences spf = await SharedPreferences.getInstance();      
+      String tk = await storage.read(key: "token");      
       Map<String, String> headers = {
-        'Content-type': 'application/json',
         'Accept': 'application/json',
-        'xtoken': spf.getString("token")
+        'xtoken': tk
       };
-      Response rsp = await get(host[3]+'/login',headers:headers).timeout(const Duration(seconds: 3));
+      Response rsp = await get(host[3]+'/login2',headers:headers).timeout(const Duration(seconds: 5));
       if(rsp.statusCode==200){
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
           vid=data["vid"];
-          oid=data["oid"];
           did=data["did"];
           tid=data["tid"];
           uid=data["uid"];
@@ -67,40 +62,36 @@ class User extends ChangeNotifier{
           name=data["name"];
           team=data["team"];
           tel=data["tel"];
-          spf.setString('token', token);
-          spf.setString('tel', tel);
           notifyListeners();
           return {'error':0,'msg':data['msg']};
-        }else{
+        }else
           return {'error':1,'msg':data['msg']};
-        }
-      }else{
+      }else       
         return {'error':2,'msg':'服务器错误，请联系管理员。'};
-      }
     }
     catch(e){
+      print(e.toString());
       return {'error':3,'msg':'网络连接超时，设备没有连接到网络？'};
     }
   }
 
   Future<Map<String,dynamic>> login(String user, String passwd) async{
     try{
-      SharedPreferences spf = await SharedPreferences.getInstance(); 
-      Response rsp = await post(host[3]+'/login',body:{'user':user,'passwd':passwd}).timeout(const Duration(seconds: 3));
+      Map<String, String> headers = {'Accept': 'application/json'};
+      Response rsp = await post(host[3]+'/login2', headers:headers, body:{'user':user,'passwd':passwd}).timeout(const Duration(seconds: 5));
       if (rsp.statusCode == 200) {
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
           vid=data["vid"];
-          oid=data["oid"];
           did=data["did"];
           tid=data["tid"];
           uid=data["uid"];
-          token=data["xtoken"];
+          token=data["token"];
           name=data["name"];
           team=data["team"];
           tel=data["tel"];
-          spf.setString('token', token);
-          spf.setString('tel', tel);
+          await storage.write(key: 'token', value: token);
+          await storage.write(key: 'tel', value: tel);
           notifyListeners();
           return {'error':0,'msg':data['msg']};
         }else{
@@ -111,6 +102,7 @@ class User extends ChangeNotifier{
       }
     }
     catch(e){
+      print(e.toString());
       return {'error':3,'msg':'网络连接超时，设备没有连接到网络？'};
     }
   }

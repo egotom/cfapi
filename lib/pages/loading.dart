@@ -11,23 +11,20 @@ class Loading extends StatefulWidget {
 
 class _LoadingState extends State<Loading> {
   bool _se=false;
-  void setupUser() async{    
+  void setupUser() async{
 	  Map rst=await Provider.of<User>(context, listen: false).getUser();
     switch(rst['error']){
       case 0:{
         Navigator.pushReplacementNamed(context, '/home');
       }break;
-
       case 3:{
         setState(() {_se=true;});
         Future.delayed(Duration(seconds: 10)).then((value) => exit(0));
       }break;
-
       default:{
         Navigator.pushReplacementNamed(context, '/login');
-      }      
+      }    
     }
-
   }
 
   @override
