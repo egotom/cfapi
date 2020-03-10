@@ -1,4 +1,4 @@
-package uk.co.thenetninja.world_time_app;
+package cn.com.shcfpump.kpi;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
