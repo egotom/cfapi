@@ -19,6 +19,7 @@ void main(){
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown
   ]);
+  
   runApp(
     ChangeNotifierProvider(
       create: (context) => User(),

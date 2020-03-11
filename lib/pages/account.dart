@@ -91,7 +91,7 @@ class _AccountState extends State<Account> {
           'Accept': 'application/json',
           'xtoken': await _storage.read(key: "token")
         };
-        Response rsp = await put(host[3]+'/login2', headers:headers, body:body).timeout(const Duration(seconds: 5));
+        Response rsp = await put(host[0]+'/login2', headers:headers, body:body).timeout(const Duration(seconds: 5));
         _isLoading = false;
         if(rsp.statusCode==200){
           Map data = jsonDecode(rsp.body);

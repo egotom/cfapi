@@ -63,7 +63,7 @@ class _RegisterState extends State<Register> {
       _registerFormKey.currentState.save();
       _isLoading = true;
       try{
-        Response rsp = await post(host[3]+'/register',body:{'name':_name,'tel':_tel,'passwd':_passwd}).timeout(const Duration(seconds: 3));
+        Response rsp = await post(host[0]+'/register',body:{'name':_name,'tel':_tel,'passwd':_passwd}).timeout(const Duration(seconds: 3));
         _isLoading = false;
         if(rsp.statusCode==200){
           Map data = jsonDecode(rsp.body);

@@ -1,7 +1,8 @@
+import 'package:cfapi/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
-import 'package:cfapi/services/score.dart';
+import 'package:cfapi/services/scoreModel.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
@@ -12,30 +13,39 @@ class MyScore extends StatefulWidget {
 }
 
 class _MyScoreState extends State<MyScore> {
-  ScoreModel scm = ScoreModel();
-  String tpClass;
+  String tpClass,drge='';
   int tpIdex=0;
-  void scFilter(opt) async {
+
+  Future<List<DateTime>> scFilter(opt) async {
     switch(opt){
       case 'd':
         final List<DateTime> picked = await DateRagePicker.showDatePicker(
-            context: context,
-            initialFirstDate: DateTime.now(),
-            initialLastDate: DateTime.now(),
-            firstDate: DateTime(2018),
-            lastDate: DateTime(2050)
+          context: context,
+          initialFirstDate: DateTime.now(),
+          initialLastDate: DateTime.now(),
+          firstDate: DateTime(2018),
+          lastDate: DateTime.now()
         );
         if (picked != null && picked.length == 2) {
-            print(picked);
+          String from = '${picked[0].year-2000}-${picked[0].month}-${picked[0].day}';
+          String to = '${picked[1].year-2000}-${picked[1].month}-${picked[1].day}';
+          setState(() {drge='$from ~ $to';});
+          return picked;
         }
         break;
+
       default:
         int id=tpIdex==2?0:tpIdex+1;
         int idx=opt==tpClass?id:0;
-        setState( () {tpClass=opt;tpIdex=idx;} );
+        setState( () {tpClass=opt; tpIdex=idx;} );
         print(opt);
         print(idx);
     }    
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -47,22 +57,46 @@ class _MyScoreState extends State<MyScore> {
           SliverPersistentHeader(
             floating: true,
             delegate: CustomSliverDelegate(
-              expandedHeight: 200.0,
-              child: ScoreFilter(scFilter),
+              expandedHeight: 180.0,
+              child: ScoreFilter(scFilter,drge),
             ),
           ),
-          SliverFixedExtentList(
-            itemExtent: 50.0,
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Container(
-                  alignment: Alignment.center,
-                  color: Colors.lightBlue[100 * (index % 9)],
-                  child: Text('list item $index'),
-                );
-              },
-            ),
-          )
+          SliverToBoxAdapter(child: Container(height: 50.0)),
+          FutureBuilder(
+            future:http('get','score'),
+            builder: (context, projectSnap) {
+              //if(projectSnap.data['error'] !='0'){
+              //  print(projectSnap.data['error']);
+              //  return SliverToBoxAdapter(
+              //    child: Center(
+              //      child: Text(
+              //        projectSnap.data['msg'],
+              //        style:TextStyle(
+              //          color:Colors.red,
+              //          fontWeight:FontWeight.bold,
+              //          fontSize: 16.0)
+              //      )
+              //    )
+              //  );
+              //}
+              
+              return SliverFixedExtentList(
+                itemExtent: 50.0,
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return Container(
+                      child: Column(
+                        children: <Widget>[
+                          Text('id: $index'),
+                          Text(projectSnap.data['msg'].toString())
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+          ),
         ],
       ),
     );
@@ -96,87 +130,186 @@ class CustomSliverDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class ScoreFilter extends StatefulWidget {
-  final _fn;
-  const ScoreFilter(this._fn,{Key key}) : super(key: key);
+  final fn;
+  String dr='';
+  ScoreFilter( @required this.fn, this.dr, { Key key}) : super(key: key);
   @override
   _ScoreFilterState createState() => _ScoreFilterState();
 }
 
 class _ScoreFilterState extends State<ScoreFilter> {
+  @override
+  void initState() {
+    info();
+    super.initState();
+  }
+  int a=0,aa=0,b=0,bb=0,c=0,cc=0;
+
+  void info({List<DateTime> dt}) async{
+    if(dt!=null && dt.length == 2){      
+      List dt2=[dt[0],dt[1].add(Duration(hours:23,minutes: 59,seconds: 59))];
+      Map rsp=await http('post', 'brief', data:{'range':dt2.toString()});
+      if(rsp['error']==0)
+        setState(() {
+          a=rsp['A+'];
+          b=rsp['B+'];
+          c=rsp['C+'];
+          aa=rsp['A-'];
+          bb=rsp['B-'];
+          cc=rsp['C-'];
+        });      
+    }else{
+      Map rsp=await http('get', 'brief');
+      if(rsp['error']==0)
+        setState(() {
+          a=rsp['A+'];
+          b=rsp['B+'];
+          c=rsp['C+'];
+          aa=rsp['A-'];
+          bb=rsp['B-'];
+          cc=rsp['C-'];
+        });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(      
-      children:<Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            FlatButton(
-              child: Text('2019.3-2020.10', style:TextStyle(color:Colors.blue[400])),
-              onPressed: ()=>widget._fn('d'),
-            ),
-            IconButton(
-              icon: Icon(Icons.date_range, color:Colors.blue[400]), 
-              onPressed: ()=>widget._fn('d') 
-            ),
-          ],
-        ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Card(
-                color:Colors.blue,
-                child: InkWell(
-                  splashColor: Colors.white.withAlpha(80),
-                  onTap: ()=>widget._fn('a'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      child: Text('A card that can be tapped'),
-                    ),
-                  ),
-                )
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children:<Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FlatButton(
+                child: Text('${widget.dr}', style:TextStyle(color:Colors.blue[400])),
+                onPressed: ()async{
+                  var dt=await widget.fn('d');
+                  if(dt!=null)
+                    info(dt: dt);
+                }
               ),
-            ),
-            Expanded(
-              child: Card(
-                color:Colors.blue,
-                child: InkWell(
-                  splashColor: Colors.white.withAlpha(80),
-                  onTap: ()=>widget._fn('b'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      child: Text('A card that can be tapped'),
-                    ),
-                  ),
-                )
+              IconButton(
+                icon: Icon(Icons.date_range, color:Colors.blue[400]), 
+                onPressed: ()async{
+                  var dt=await widget.fn('d');
+                  if(dt!=null)
+                    info(dt: dt);
+                }
               ),
-            ),
-            Expanded(
-              child: Card(
-                color:Colors.blue,
-                child: InkWell(
-                  splashColor: Colors.white.withAlpha(80),
-                  onTap: ()=>widget._fn('c'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      child: Text('A card that can be tapped'),
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Card(
+                  color:MyTheme().scdc,
+                  child: InkWell(
+                    splashColor: Colors.white.withAlpha(80),
+                    onTap: ()=>widget.fn('a'),
+                    child: Container(                      
+                      width: 100,
+                      height: 100,
+                      padding: EdgeInsets.symmetric(vertical:0.0,horizontal:5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('A : ' ,style:MyTheme().scdf),
+                              Text('A+: ' ,style:MyTheme().scdf),
+                              Text('A-: ' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('${a-aa}' ,style:MyTheme().scdf),
+                              Text('$a' ,style:MyTheme().scdf),
+                              Text('$aa' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                )
+                  )
+                ),
               ),
-            ),
-          ],
-        )
-      ] 
+              Expanded(
+                child: Card(
+                  color:MyTheme().scdc,
+                  child: InkWell(
+                    splashColor: Colors.white.withAlpha(80),
+                    onTap: ()=>widget.fn('b'),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      padding: EdgeInsets.symmetric(vertical:0.0,horizontal:5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('B :' ,style:MyTheme().scdf),
+                              Text('B+:' ,style:MyTheme().scdf),
+                              Text('B-:' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('${b-bb}' ,style:MyTheme().scdf),
+                              Text('$b' ,style:MyTheme().scdf),
+                              Text('$bb' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ),
+              ),
+              Expanded(
+                child: Card(
+                  color:MyTheme().scdc,
+                  child: InkWell(
+                    splashColor: Colors.white.withAlpha(80),
+                    onTap: ()=>widget.fn('c'),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      padding: EdgeInsets.symmetric(vertical:0.0,horizontal:5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('C :' ,style:MyTheme().scdf),
+                              Text('C+:' ,style:MyTheme().scdf),
+                              Text('C-:' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('${c-cc}' ,style:MyTheme().scdf),
+                              Text('$c' ,style:MyTheme().scdf),
+                              Text('$cc' ,style:MyTheme().scdf),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ),
+              ),
+            ],
+          )
+        ] 
+      ),
     );
   }
 }

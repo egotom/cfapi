@@ -11,3 +11,7 @@ final appTheme = ThemeData(
     ),
   ),
 );
+class MyTheme {
+  final scdc=Colors.blue;
+  final scdf=TextStyle(fontSize: 16.0,color:Colors.white,fontWeight: FontWeight.bold);
+}
