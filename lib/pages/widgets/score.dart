@@ -49,15 +49,33 @@ class _ScoreState extends State<Score> {
   }
   
   Widget ScoreList( BuildContext context, int index,  AsyncSnapshot snapshot){
-    return Card(
-      child: Column(
+    return Container(
+      child: Row(
         children: <Widget>[
-          Text('id: $index'),
-          Text(snapshot.data[index]['description'],
-            maxLines: 2,
-          )
-        ],
-      ),
+            Flexible(
+              child: Container(
+                child:Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,                  
+                  children: <Widget>[             
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      
+                      children: <Widget>[
+                        Text('提交：${snapshot.data[index]["name"]}'),
+                        Text('类型：${snapshot.data[index]["refer"]}'),
+                        Text('奖扣：${snapshot.data[index]["classify"]}${snapshot.data[index]["score"]}'), 
+                      ],
+                    ),
+                    SizedBox(height:5.0),
+                    Text('描述：${snapshot.data[index]["description"]}'),
+                    Text('规则：${snapshot.data[index]["rule"]}'),
+                    Divider(height:8.0),            
+                  ],
+                ),
+              ),
+            ),
+        ]
+      )
     );
   }
 
@@ -75,13 +93,21 @@ class _ScoreState extends State<Score> {
             ),
           ),
           SliverToBoxAdapter(child: Container(height: 50.0)),
-          FutureBuilder(
+          FutureBuilder(            
             future:http('get','score'),
             builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                print('snapshot.data Done!');
+              } else if (snapshot.hasError) {
+                print(snapshot.error);
+              } else {
+                print('Awaiting result...');
+              }
               return SliverFixedExtentList(
-                itemExtent: 50.0,
+                itemExtent: 220,
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
+                    //print(snapshot.data);
                     return ScoreList(context, index, snapshot);
                   },
                 ),

@@ -50,7 +50,7 @@ class User extends ChangeNotifier{
         'Accept': 'application/json',
         'xtoken': tk
       };
-      Response rsp = await get(host[0]+'/login2', headers:headers).timeout(const Duration(seconds: 5));
+      Response rsp = await get(host[0]+'/login2', headers:headers);
       if(rsp.statusCode==200){
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
@@ -78,7 +78,7 @@ class User extends ChangeNotifier{
   Future<Map<String,dynamic>> login(String user, String passwd) async{
     try{
       Map<String, String> headers = {'Accept': 'application/json'};
-      Response rsp = await post(host[0]+'/login2', headers:headers, body:{'user':user,'passwd':passwd}).timeout(const Duration(seconds: 5));
+      Response rsp = await post(host[0]+'/login2', headers:headers, body:{'user':user,'passwd':passwd});
       if (rsp.statusCode == 200) {
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
