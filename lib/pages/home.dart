@@ -47,7 +47,7 @@ class _HomeState extends State<Home> {
       ),
 
       body: Center(child: <Widget>[
-        MyScore(),
+        Score(),
         Text('Index 1: Business'),
         Text('Index 2: School'),
       ].elementAt(_selectedIndex)),

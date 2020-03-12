@@ -7,12 +7,12 @@ import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
 
-class MyScore extends StatefulWidget {
+class Score extends StatefulWidget {
   @override
-  _MyScoreState createState() => _MyScoreState();
+  _ScoreState createState() => _ScoreState();
 }
 
-class _MyScoreState extends State<MyScore> {
+class _ScoreState extends State<Score> {
   String tpClass,drge='';
   int tpIdex=0;
 
@@ -47,6 +47,19 @@ class _MyScoreState extends State<MyScore> {
   void initState() {
     super.initState();
   }
+  
+  Widget ScoreList( BuildContext context, int index,  AsyncSnapshot snapshot){
+    return Card(
+      child: Column(
+        children: <Widget>[
+          Text('id: $index'),
+          Text(snapshot.data[index]['description'],
+            maxLines: 2,
+          )
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,34 +77,12 @@ class _MyScoreState extends State<MyScore> {
           SliverToBoxAdapter(child: Container(height: 50.0)),
           FutureBuilder(
             future:http('get','score'),
-            builder: (context, projectSnap) {
-              //if(projectSnap.data['error'] !='0'){
-              //  print(projectSnap.data['error']);
-              //  return SliverToBoxAdapter(
-              //    child: Center(
-              //      child: Text(
-              //        projectSnap.data['msg'],
-              //        style:TextStyle(
-              //          color:Colors.red,
-              //          fontWeight:FontWeight.bold,
-              //          fontSize: 16.0)
-              //      )
-              //    )
-              //  );
-              //}
-              
+            builder: (context, snapshot) {
               return SliverFixedExtentList(
                 itemExtent: 50.0,
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
-                    return Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('id: $index'),
-                          Text(projectSnap.data['msg'].toString())
-                        ],
-                      ),
-                    );
+                    return ScoreList(context, index, snapshot);
                   },
                 ),
               );
