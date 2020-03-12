@@ -14,11 +14,11 @@ import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
 
 void main(){
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown
-  ]);
+  //WidgetsFlutterBinding.ensureInitialized();
+  //SystemChrome.setPreferredOrientations([
+  //  DeviceOrientation.portraitUp,
+  //  DeviceOrientation.portraitDown
+  //]);
   
   runApp(
     ChangeNotifierProvider(

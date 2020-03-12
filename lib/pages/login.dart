@@ -25,33 +25,35 @@ class _LoginState extends State<Login> {
           ),
         ],
       ),
-      body: Builder(
-        builder: (context) =>Center(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(65, 10, 65, 90),            
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,              
-              children: [
-                Text('登录成峰积分',style: Theme.of(context).textTheme.display4),
-                TextFormField(
-                  decoration: InputDecoration(hintText: '姓名/电话'),
-                  controller: _userCtl
-                ),
-                TextFormField(
-                  decoration: InputDecoration(hintText: '密码'),
-                  obscureText: true,
-                  controller: _passwdCtl
-                ),
-                SizedBox(height: 24),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  child: RaisedButton(
-                    color: Colors.blue,                
-                    child: Text('登 录',style:TextStyle(color:Colors.white)),
-                    onPressed: ()=>signIn(context)
+      body: SingleChildScrollView(
+        child: Builder(
+          builder: (context) =>Center(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(65, 10, 65, 90),            
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,              
+                children: [
+                  Text('登录成峰积分',style: Theme.of(context).textTheme.display4),
+                  TextFormField(
+                    decoration: InputDecoration(hintText: '姓名/电话'),
+                    controller: _userCtl
                   ),
-                )
-              ],
+                  TextFormField(
+                    decoration: InputDecoration(hintText: '密码'),
+                    obscureText: true,
+                    controller: _passwdCtl
+                  ),
+                  SizedBox(height: 24),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: RaisedButton(
+                      color: Colors.blue,                
+                      child: Text('登 录',style:TextStyle(color:Colors.white)),
+                      onPressed: ()=>signIn(context)
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

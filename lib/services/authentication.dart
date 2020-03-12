@@ -109,7 +109,7 @@ class User extends ChangeNotifier{
 }
 
 
-Future<Map> http(String method, String uri, {Map data}) async {
+Future http(String method, String uri, {Map data}) async {
   String url ='${host[0]}/$uri';
   Response response;
 

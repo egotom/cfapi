@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
-import 'package:cfapi/pages/widgets/myScore.dart';
+import 'package:cfapi/pages/widgets/score.dart';
 
 class Home extends StatefulWidget {
   @override
