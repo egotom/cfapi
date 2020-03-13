@@ -29,9 +29,10 @@ class _LoginState extends State<Login> {
         child: Builder(
           builder: (context) =>Center(
             child: Container(
-              padding: EdgeInsets.fromLTRB(65, 10, 65, 90),            
+              padding: EdgeInsets.fromLTRB(65.0, 150.0, 65.0, 150.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,              
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text('登录成峰积分',style: Theme.of(context).textTheme.display4),
                   TextFormField(

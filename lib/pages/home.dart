@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
-import 'package:cfapi/pages/widgets/score.dart';
+import 'package:cfapi/pages/widgets/scoreList.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -25,6 +25,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //resizeToAvoidBottomPadding: true,
       backgroundColor: Colors.white,
       drawer: SideBar('home'),
       appBar: AppBar(
@@ -47,7 +48,7 @@ class _HomeState extends State<Home> {
       ),
 
       body: Center(child: <Widget>[
-        Score(),
+        ScoreList(),
         Text('Index 1: Business'),
         Text('Index 2: School'),
       ].elementAt(_selectedIndex)),

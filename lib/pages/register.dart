@@ -32,7 +32,7 @@ class _RegisterState extends State<Register> {
       ),
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.fromLTRB(65, 0, 65, 20),   
+          padding: EdgeInsets.fromLTRB(65, 100, 65, 100),   
           child: _isLoading ? Center(child: CircularProgressIndicator()) : Center(
             child: Form(
               key: _registerFormKey,
