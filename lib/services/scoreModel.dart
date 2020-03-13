@@ -27,8 +27,6 @@ class Score {
   static Future<List> browse({List<DateTime> range ,int page}) async {
     Map result= (range!=null)?await http('post','score',data:{'range':range.toString()}) :await http('get','score');
     if(result['error']==0){
-      print(result['lst']);
-      print('--------------------------------------------------------');
       List scores=result['lst'].map((json) => Score.fromJson(json)).toList();
       return scores;
     }

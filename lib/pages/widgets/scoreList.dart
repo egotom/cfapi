@@ -111,7 +111,6 @@ class _ScoreListState extends State<ScoreList> {
               child: ScoreFilter(scFilter,drge),
             ),
           ),
-          SliverToBoxAdapter(child: Container(height: 50.0)),
           FutureBuilder(            
             future:future,
             builder: ( context,  snapshot) {

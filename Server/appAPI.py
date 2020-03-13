@@ -80,22 +80,42 @@ def verify(request):
 		print(request.headers)
 	return rst
 
-def score(id,range=None):
-	pass
-	
+
 class Score(Resource):
 	def __init__(self):
 		self.x=verify(request)		
+		
 	def get(self):
-		if self.x.vid and self.x.did and self.x.tid:
-			return jsonify(dict(score(self.x.vid),**e0))
+		if self.x.vid:
+			page = request.args.get('page', type=int)
+			pps=[]
+			sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
+				left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc;'''%self.x.vid
+			if page:
+				sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				name=r.name if r.name else ''
+				rule=r.rule if r.rule else ''
+				pp.append({"id":r.id,"name":name,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+			return jsonify(dict({"lst":pp},**e0))
 		return e2
 		
 	def post(self):
 		parser.add_argument('range')
 		args=parser.parse_args()
+		dt=args['range'][1:-1].split(',')
 		if self.x.vid and self.x.did and self.x.tid:
-			return jsonify(dict(score(self.x.vid,args['range']),**e0))
+			sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
+				left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and p.create_at between '%s' and '%s' and state= '通过审核' order by p.create_at desc;'''%(self.x.vid,dt[0],dt[1])
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				name=r.name if r.name else ''
+				rule=r.rule if r.rule else ''
+				pp.append({"id":r.id,"name":name,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+			return jsonify(dict({"lst":pp},**e0))
 		return e2
 		
 api.add_resource(Score,'/score')
