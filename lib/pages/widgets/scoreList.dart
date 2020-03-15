@@ -118,21 +118,10 @@ class _ScoreListState extends State<ScoreList> {
                 case ConnectionState.none:
                 case ConnectionState.waiting:
                 case ConnectionState.active:
-                  return SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children:<Widget>[CircularProgressIndicator()], )
-                  );
+                  return SliverToBoxAdapter(child: Center(child:CircularProgressIndicator()));
                 case ConnectionState.done:
                   if (snapshot.hasError)
-                    return SliverToBoxAdapter(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children:<Widget>[Text("error: ${snapshot.error}")]
-                        )
-                      );
+                    return SliverToBoxAdapter(child: Center(child:Text("error: ${snapshot.error}")));
                   return SliverFixedExtentList(
                     itemExtent: 140.0,
                     delegate: SliverChildBuilderDelegate(
@@ -179,7 +168,7 @@ class CustomSliverDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class ScoreFilter extends StatefulWidget {
-  final fn;
+  final Function fn;
   String dr='';
   ScoreFilter( @required this.fn, this.dr, { Key key}) : super(key: key);
   @override
@@ -234,16 +223,14 @@ class _ScoreFilterState extends State<ScoreFilter> {
                 child: Text('${widget.dr}', style:TextStyle(color:Colors.blue[400])),
                 onPressed: ()async{
                   var dt=await widget.fn('d');
-                  if(dt!=null)
-                    info(dt: dt);
+                  if(dt!=null)info(dt: dt);
                 }
               ),
               IconButton(
                 icon: Icon(Icons.date_range, color:Colors.blue[400]), 
                 onPressed: ()async{
                   var dt=await widget.fn('d');
-                  if(dt!=null)
-                    info(dt: dt);
+                  if(dt!=null)info(dt: dt);
                 }
               ),
             ],
