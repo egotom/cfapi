@@ -2,17 +2,17 @@ import 'package:cfapi/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
-import 'package:cfapi/services/scoreModel.dart';
+import 'package:cfapi/services/score.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
 
-class ScoreList extends StatefulWidget {
+class MyScore extends StatefulWidget {
   @override
-  _ScoreListState createState() => _ScoreListState();
+  _MyScoreState createState() => _MyScoreState();
 }
 
-class _ScoreListState extends State<ScoreList> {
+class _MyScoreState extends State<MyScore> {
   String tpClass,drge='';
   int tpIdex=0;
 
