@@ -1,56 +1,62 @@
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 
-class FirstPage extends StatefulWidget {
+class FindPenson extends StatefulWidget {
   @override
-  _FirstPageState createState() => _FirstPageState();
+  _FindPensonState createState() => _FindPensonState();
 }
 
-class _FirstPageState extends State<FirstPage> {
+class _FindPensonState extends State<FindPenson> {
   List<String> added = [];
   String currentText = "";
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
 
-  _FirstPageState() {
+  _FindPensonState() {
     textField = SimpleAutoCompleteTextField(
       key: key,
-      decoration: InputDecoration(errorText: "Beans"),
-      controller: TextEditingController(text: "Starting Text"),
+      decoration: InputDecoration(
+        hintText: "添加奖扣对象"
+      ),
+      //controller: TextEditingController(text: "Starting Text"),
       suggestions: suggestions,
       textChanged: (text) => currentText = text,
       clearOnSubmit: true,
       textSubmitted: (text) => setState(() {
-		    if (text != "") added.add(text);
+        if (text != "") {
+          added.add(text);
+        }
 	    }),
     );
   }
 
-  List<String> suggestions = ["Apple","Armidillo","Actual","Actuary","America"];
+  List<String> suggestions = ["Australia","Antarctica","Blueberry","Hazelnut","Ice Cream","Jely","Kiwi Fruit","Lamb","Macadamia","Nachos","Oatmeal","Palm Oil","Quail","Rabbit","Salad","T-Bone Steak","Urid Dal","Vanilla",];
   SimpleAutoCompleteTextField textField;
-  bool showWhichErrorText = false;
 
   @override
   Widget build(BuildContext context) {
-    Column body = Column(children: [
-      ListTile(
+    Column body = Column(
+      children: <Widget>[
+        ListTile(
           title: textField,
-          trailing: IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                textField.triggerSubmitted();
-                //showWhichErrorText = !showWhichErrorText;
-                //textField.updateDecoration(
-                //    decoration: InputDecoration(
-                //        errorText: showWhichErrorText ? "Beans" : "Tomatoes"));
-              })),]);
+          trailing: Padding(
+            padding: const EdgeInsets.only(top:10.0),
+            child: IconButton(
+                color: Colors.blue,
+                iconSize: 30,
+                icon: Icon(Icons.group_add),
+                onPressed: () {
+                  textField.triggerSubmitted();
+                  textField.updateDecoration();
+                }),
+          ))
+    ]);
 
     body.children.addAll(added.map((item) {
       return ListTile(title: Text(item));
     }));
 
-    return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      body: body
+    return Container(
+      child: body
     );
   }
 }
