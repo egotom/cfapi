@@ -8,17 +8,19 @@ class RuleProposal extends StatefulWidget {
 }
 
 class _RuleProposalState extends State<RuleProposal> {
-  String _ST='B+';
+  String _ST='';
   bool _mod=true;
+  int _trl;
   List<String> _filters = <String>[];
   List<Rule> _rules=<Rule>[];
+  List<Rule> _ruled=<Rule>[];
 
   void ruleLoading() async{
-    //List<Rule> rules=await Rule.browse();
-    //setState(() {
-    //  _rules= rules;
-    //});
-    _rules = await Rule.browse();
+    List<Rule> rules=await Rule.browse();
+    setState(() {
+      _rules= rules;
+      _ruled= rules;
+    });
   }
 
   @override
@@ -78,7 +80,71 @@ class _RuleProposalState extends State<RuleProposal> {
       );
     }
   }
-  
+  Column filter()=>Column(
+    children:<Widget>[
+      SwitchListTile(
+        inactiveThumbColor: Colors.red,
+        title: _mod?
+          Text('按部门搜索',style: TextStyle(color:Colors.blue,fontWeight:FontWeight.bold)):
+          Text('按积分规则属性搜索',style: TextStyle(color:Colors.red,fontWeight:FontWeight.bold)),
+        value: _mod,
+        onChanged: (bool value) { setState(() { _mod = value;}); },
+        secondary: _mod? 
+          Icon(Icons.dns, color: Colors.blue):
+          Icon(Icons.assignment, color: Colors.red),
+      ),
+      Wrap(
+        spacing: 8.0, // gap between adjacent chips
+        runSpacing: 4.0, 
+        children: _mod? deptWidgets.toList():xzWidgets.toList()
+      ),
+      SizedBox(height:30),
+      Row(
+        children:<Widget>[
+          Expanded(                
+            child: Padding(
+              padding: EdgeInsets.only(top:15),
+              child: DropdownButton(
+                value: _ST,
+                items: <String>["","A+", "A-", "B+", "B-", "C+","C-"]
+                  .map<DropdownMenuItem<String>>((String value){
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                onChanged: (String value) =>setState(() {_ST = value;})
+              ),
+            )
+          ),
+          Expanded(
+            child:TextField(
+              decoration: InputDecoration(hintText: '积分规则序列号'),
+            )
+          ),
+        ]
+      ),
+      SizedBox(height:30),
+      TextField(
+        decoration: InputDecoration(
+          hintText: '搜索',
+          suffixIcon: IconButton(
+            icon: Icon(Icons.search), 
+            onPressed: (){
+              print("I'm bussy");
+            }
+          ),
+          border: OutlineInputBorder()
+        ),
+        onTap: ()=>
+          setState((){
+            _rules=_ruled;
+          })
+      ),
+      SizedBox(height:30),
+    ]
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,87 +168,65 @@ class _RuleProposalState extends State<RuleProposal> {
       ),
       
       body:SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children:<Widget>[
-              Row(
-                children:<Widget>[
-                  Expanded(                
-                    child: Padding(
-                      padding: EdgeInsets.only(top:15),
-                      child: DropdownButton(
-                        value: _ST,
-                        items: <String>["A+", "A-", "B+", "B-", "C+","C-"]
-                          .map<DropdownMenuItem<String>>((String value){
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        onChanged: (String value) =>setState(() {_ST = value;})
-                      ),
-                    )
-                  ),
-                  Expanded(
-                    child:TextField(
-                      decoration: InputDecoration(hintText: '积分规则序列号'),
-                    )
-                  ),
-                ]
-              ),
-              SizedBox(height:30),
-              SwitchListTile(
-                inactiveThumbColor: Colors.red,
-                title: _mod?
-                  Text('按部门搜索',style: TextStyle(color:Colors.blue,fontWeight:FontWeight.bold)):
-                  Text('按积分规则属性搜索',style: TextStyle(color:Colors.red,fontWeight:FontWeight.bold)),
-                value: _mod,
-                onChanged: (bool value) { setState(() { _mod = value;}); },
-                secondary: _mod? 
-                  Icon(Icons.dns, color: Colors.blue):
-                  Icon(Icons.assignment, color: Colors.red),
-              ),
-              Wrap(
-                spacing: 8.0, // gap between adjacent chips
-                runSpacing: 4.0, 
-                children: _mod? deptWidgets.toList():xzWidgets.toList()
-              ),
+        child: Column(
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10),
+              child: ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: _rules.length,
+                shrinkWrap: true,
+                itemBuilder: (BuildContext context, int index) {
 
-              SizedBox(height:30),
-              
-              FutureBuilder(
-                future: Rule.browse(),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                    case ConnectionState.active:
-                      return Center(child: CircularProgressIndicator());
-                    case ConnectionState.done:
-                      if (snapshot.hasError)
-                        return Text("There was an error: ${snapshot.error}");
-                      var rules = snapshot.data;
-                      print(rules);
-                      return ListView.separated(
-                        itemCount: rules.length,
-                        separatorBuilder: (context, index) => Divider(),
-                        itemBuilder: (BuildContext context, int index) {
-                          Rule rule = rules[index];
-                          return ListTile(
-                            title: Text('------------'),
-                          );
-                        },
-                      );
+                  Color color=Colors.grey[200], fcolor=Colors.black;
+                  if(index>0 && _trl==_rules[index-1].id) {
+                    color=Colors.red;
+                    fcolor=Colors.white;
                   }
+                  return index==0?filter():Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                    child: Card(
+                      color: color,
+                      child: InkWell(
+                        onTap: (){
+                          setState(() {
+                            _trl=_rules[index-1].id;
+                            _rules= _rules.sublist(index-1,index+1);
+                          });
+                        },
+                        splashColor: Colors.white.withAlpha(80),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:<Widget>[
+                              Text('序列号：${_rules[index-1].serial}', style: TextStyle(color: fcolor)),
+                              Text('奖扣分：${_rules[index-1].classify}${_rules[index-1].score}', style: TextStyle(color: fcolor)),
+                              Text(_rules[index-1].description, style: TextStyle(color: fcolor)),
+                            ]
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
                 }
-              )
-            ]
-          ),
+              ),
+            ),
+
+            Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.all(15),
+              child: RaisedButton(
+                onPressed: (){},
+                color: Colors.blue,
+                child: Text('提 报',style: TextStyle(fontSize: 16,color: Colors.white)),
+              ),
+            )
+
+          ],
         ),
-      )
+      ),
     );
   }
 }
-
-

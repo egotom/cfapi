@@ -1,62 +1,73 @@
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:cfapi/services/person.dart';
 import 'package:flutter/material.dart';
 
 class FindPenson extends StatefulWidget {
+  List<String> suggestions=[];
+  FindPenson(this.suggestions);
+  
   @override
-  _FindPensonState createState() => _FindPensonState();
+  _FindPensonState createState() => _FindPensonState(suggestions);
 }
 
 class _FindPensonState extends State<FindPenson> {
-  List<String> added = [];
   String currentText = "";
+  List<String> _peoples=[];
+  SimpleAutoCompleteTextField textField;
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
 
-  _FindPensonState() {
+  _FindPensonState(List<String> sugs) {
     textField = SimpleAutoCompleteTextField(
       key: key,
-      decoration: InputDecoration(
-        hintText: "添加奖扣对象"
-      ),
-      //controller: TextEditingController(text: "Starting Text"),
-      suggestions: suggestions,
+      decoration: InputDecoration(hintText: "添加奖扣对象"),
+      suggestions: sugs,
       textChanged: (text) => currentText = text,
       clearOnSubmit: true,
       textSubmitted: (text) => setState(() {
-        if (text != "") {
-          added.add(text);
+        if (text != "" ) {
+          _peoples.add(text);
         }
 	    }),
     );
   }
 
-  List<String> suggestions = ["Australia","Antarctica","Blueberry","Hazelnut","Ice Cream","Jely","Kiwi Fruit","Lamb","Macadamia","Nachos","Oatmeal","Palm Oil","Quail","Rabbit","Salad","T-Bone Steak","Urid Dal","Vanilla",];
-  SimpleAutoCompleteTextField textField;
-
   @override
   Widget build(BuildContext context) {
-    Column body = Column(
-      children: <Widget>[
-        ListTile(
-          title: textField,
-          trailing: Padding(
-            padding: const EdgeInsets.only(top:10.0),
-            child: IconButton(
+    return Container(
+      child: Column(
+        children: <Widget>[
+          ListTile(
+            title: textField,
+            trailing: Padding(
+              padding: const EdgeInsets.only(top:10.0),
+              child: IconButton(
                 color: Colors.blue,
                 iconSize: 30,
                 icon: Icon(Icons.group_add),
-                onPressed: () {
-                  textField.triggerSubmitted();
-                  textField.updateDecoration();
-                }),
-          ))
-    ]);
-
-    body.children.addAll(added.map((item) {
-      return ListTile(title: Text(item));
-    }));
-
-    return Container(
-      child: body
+                onPressed: (){},
+              ),
+            )
+          ),
+          Wrap(
+            spacing: 8.0, // gap between adjacent chips
+            runSpacing: 4.0, 
+            children:_peoples.map((String item)=>
+              Chip(
+                label: Text(item),
+                deleteIconColor: Colors.red,
+                onDeleted: () {
+                  setState(() {
+                    _peoples.removeWhere((String name) {
+                      return name == item;
+                    });
+                  });
+                },
+              )
+            ).toList()
+          )
+        ]
+      )
     );
   }
 }
+  

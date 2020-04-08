@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -8,9 +10,8 @@ class AdminProposal extends StatefulWidget {
 
 class _AdminProposalState extends State<AdminProposal> {
   bool _lty=true;
-  int _score=0;
   String _ST='B+';
-
+  final TextEditingController _scCtl = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +41,7 @@ class _AdminProposalState extends State<AdminProposal> {
             SwitchListTile(
               inactiveThumbColor: Colors.red,
               title: _lty?
-                Text('默认奖券模式',style: TextStyle(color:Colors.blue,fontWeight:FontWeight.bold)):
+                Text('有奖券',style: TextStyle(color:Colors.blue,fontWeight:FontWeight.bold)):
                 Text('无奖券',style: TextStyle(color:Colors.red,fontWeight:FontWeight.bold)),
               value: _lty,
               onChanged: (bool value) { setState(() { _lty = value; }); },
@@ -65,6 +66,7 @@ class _AdminProposalState extends State<AdminProposal> {
             ),
             SizedBox(height:30),
             TextField(
+              controller: _scCtl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(hintText: '分值'),
             ),
@@ -72,9 +74,12 @@ class _AdminProposalState extends State<AdminProposal> {
             Container(
               width: MediaQuery.of(context).size.width,
               child:RaisedButton(              
-                onPressed: () {},
+                onPressed: () {
+                    int _score=double.parse(_scCtl.text).round();
+                    Navigator.pop(context, {'score':_score,'classify':_ST,'refer':_lty?'C':'F'});
+                },
                 color: Colors.blue,
-                child: Text('确认',style: TextStyle(fontSize: 16,color: Colors.white)),
+                child: Text('提 报',style: TextStyle(fontSize: 16,color: Colors.white)),
               ),
             ),
           ]

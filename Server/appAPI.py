@@ -42,10 +42,10 @@ def verify(request):
 			mtoken=jwt.decode(bytes(xtoken, 'utf-8'), cfg['SECRET_KEY'], algorithms=['HS256'],options={'verify_iat': False})			
 		except Exception as e:
 			print('解码验证信息失败：',e)
-			new_token = Token(token=xtoken)
-			db.session.add(new_token)
-			db.session.commit()
-			db.session.refresh(new_token)
+			#new_token = Token(token=xtoken)
+			#db.session.add(new_token)
+			#db.session.commit()
+			#db.session.refresh(new_token)
 			#print(new_token)
 			return rst
 		if mtoken['iat'] > time.time():
@@ -71,15 +71,124 @@ def verify(request):
 				rst.had['did']=visitor.department_id
 				rst.had['tid']=visitor.duty_id
 			rst.had['xtoken']=str(jwt.encode({'vid':rst.vid,'did':rst.did, 'tid':rst.tid, 'uid':rst.uid, 'iat': time.time()+1200},cfg['SECRET_KEY'],algorithm='HS256'),'utf-8')
-			new_token = Token(token=xtoken,vid=mtoken['vid'],uid=mtoken['uid'],tid=mtoken['tid'],did=mtoken['did'],sts=rst.__dict__)
-			db.session.add(new_token)
-			db.session.commit()
-			db.session.refresh(new_token)
+			#new_token = Token(token=xtoken,vid=mtoken['vid'],uid=mtoken['uid'],tid=mtoken['tid'],did=mtoken['did'],sts=rst.__dict__)
+			#db.session.add(new_token)
+			#db.session.commit()
+			#db.session.refresh(new_token)
 		#print(mtoken['vid'],'   ----------------------------  ',rst.vid)
 	else:
 		print(request.headers)
 	return rst
 
+class Proposal(Resource):
+	def __init__(self):
+		self.x=verify(request)		
+		
+	def post(self):
+		if self.x.did and self.x.tid and self.x.uid is not None and self.x.vid:
+			parser.add_argument('targets')
+			parser.add_argument('rid')
+			parser.add_argument('classify')
+			parser.add_argument('refer')
+			parser.add_argument('description')
+			parser.add_argument('score')
+			args = parser.parse_args()
+			pid=self.x.vid						
+			if args['refer'] not in ['C','R','F']:
+				return e8	
+			
+			if args['classify'] not in ['B+','B-','C+','C-']:
+				return e8
+			if (args['classify']=='C+' or args['classify']=='C-') and self.x.uid!=0:
+				return e2
+			try:
+				args['rid']=int(args['rid']) if args['refer']=='R' else 'NULL'
+				args['score']=int(args['score'])
+			except Exception as e:
+				return e17
+			me=Duty.query.get(self.x.tid)
+			if args['score'] > me.lmt and self.x.uid<7 and args['refer'] in ['C','F']:
+				return {'error':27,'msg':'奖扣积分超额，请提交 %s 以内的奖扣分操作！'%me.lmt}
+				
+			sql='''SELECT v.id,v.name,v.department_id AS dpt,v.duty_id,T.role FROM 
+				visitor AS V LEFT JOIN duty AS T ON T.id=V.duty_id
+				WHERE v.auth=1 and T.role is not null;'''
+				
+			fs=db.session.execute(sql)
+			fls=[]
+			for v in fs:
+				if v.id ==self.x.vid:
+					fls.append((v.id,v.name))
+					if self.x.uid==7:
+						break						
+				if self.x.uid==6 and v.dpt==self.x.did:
+					fls.append((v.id,v.name))
+					continue					
+				if self.x.uid==0 and v.duty_id !=1:
+					fls.append((v.id,v.name))
+					continue					
+				if self.x.uid <= v.role and self.x.uid<6:
+					fls.append((v.id,v.name))
+					continue					
+			succeed=[]
+			failed=[]
+			tgt=[]			
+			for t in args["targets"].split(" "):
+				if len(t)>1:
+					tgt.append(t)
+			for t in tgt:
+				bfd=False
+				for f in fls:
+					if t==f[1]:
+						if f[0]==self.x.vid and args['refer'] in ['C','F']:  #管理权限无法奖扣个人   2019.6.15
+							failed.append(t)
+							break
+						succeed.append(f[0])
+						bfd=True
+						break
+				if not bfd:
+					failed.append(t)
+			if len(succeed)>0:
+				apv=333
+				if state=='':
+					state='提交成功' #if self.x.uid>0 else '通过审核'			
+				sql=''
+				sq='insert into propose(proposer_id,approver_id,beneficiary_id,refer_id,score,classify,refer,state,description,create_at) VALUES'
+				for sc in succeed:
+					desc=args['description'].replace('"','“').replace("'","‘")
+					if sc==self.x.vid and args['classify']=="B-":
+						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], round(args['score']/2), args['classify'], args['refer'], state, desc, args['month'])
+					else:
+						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], args['score'], args['classify'], args['refer'], state, desc, args['month'])						
+				sql=sq+sql[0:-1]
+				db.session.execute(sql)
+				db.session.commit()
+				if len(failed)>0:
+					return jsonify(dict({'error':26,'msg':'%s 未找到，或不在奖扣权限内！%s 奖扣成功。' % (failed, succeed)},**self.x.had))
+				e0.update(self.x.had)
+				return e0
+			return {'error':26,'msg':'%s 未找到，或不在奖扣权限内！'%failed}
+		return e2	
+
+api.add_resource(Proposal,'/proposal')
+	
+class Person(Resource):
+	def __init__(self):
+		self.x=verify(request)		
+		
+	def get(self):
+		if self.x.vid:
+			pps=[]
+			sql='''SELECT v.id,v.NAME as name,d.NAME AS dept FROM visitor AS v LEFT JOIN department AS d ON v.department_id=d.id 
+				left JOIN duty AS t ON t.id=v.duty_id WHERE v.auth=1 AND t.role>0;'''
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				pp.append({"id":r.id,"name":r.name,"dept":r.dept})
+			return jsonify(dict({"lst":pp},**e0))
+		return e2
+
+api.add_resource(Person,'/persons')
 
 class Score(Resource):
 	def __init__(self):
@@ -119,8 +228,24 @@ class Score(Resource):
 		return e2
 		
 api.add_resource(Score,'/score')
-	
-	
+
+class Rule(Resource):
+	def __init__(self):
+		self.x=verify(request)		
+		
+	def get(self):
+		if self.x.vid:
+			pps=[]
+			sql='''SELECT id,classify,score,serial,department,property,description FROM rule limit 100;'''
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				pp.append({"id":r.id,"classify":r.classify,"serial":r.serial,"score":r.score,"serial":r.serial,"department":r.department,"description":r.description,"property":r.property})
+			return jsonify(dict({"lst":pp},**e0))
+		return e2
+
+api.add_resource(Rule,'/rules')
+
 def brief(id,range=None):
 	sql='''SELECT classify, sum(score) AS score FROM propose WHERE beneficiary_id=%s and state='通过审核' group BY classify;'''%id
 	if range!=None:
