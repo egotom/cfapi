@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -75,8 +73,8 @@ class _AdminProposalState extends State<AdminProposal> {
               width: MediaQuery.of(context).size.width,
               child:RaisedButton(              
                 onPressed: () {
-                    int _score=double.parse(_scCtl.text).round();
-                    Navigator.pop(context, {'score':_score,'classify':_ST,'refer':_lty?'C':'F'});
+                  int _score=double.parse(_scCtl.text).round();
+                  Navigator.pop(context, {'score':_score.toString(),'classify':_ST,'refer':_lty?'C':'F'});
                 },
                 color: Colors.blue,
                 child: Text('提 报',style: TextStyle(fontSize: 16,color: Colors.white)),

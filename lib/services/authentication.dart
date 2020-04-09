@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as net;
 import 'dart:convert';
 import 'package:cfapi/config/app.dart';
 
@@ -50,7 +50,7 @@ class User extends ChangeNotifier{
         'Accept': 'application/json',
         'xtoken': tk
       };
-      Response rsp = await get(host[0]+'/login2', headers:headers);
+      net.Response rsp = await net.get(host[0]+'/login2', headers:headers);
       if(rsp.statusCode==200){
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
@@ -78,7 +78,7 @@ class User extends ChangeNotifier{
   Future<Map<String,dynamic>> login(String user, String passwd) async{
     try{
       Map<String, String> headers = {'Accept': 'application/json'};
-      Response rsp = await post(host[0]+'/login2', headers:headers, body:{'user':user,'passwd':passwd});
+      net.Response rsp = await net.post(host[0]+'/login2', headers:headers, body:{'user':user,'passwd':passwd});
       if (rsp.statusCode == 200) {
         Map data = jsonDecode(rsp.body);
         if(data['error']==0){
@@ -111,8 +111,7 @@ class User extends ChangeNotifier{
 
 Future http(String method, String uri, {Map data}) async {
   String url ='${host[0]}/$uri';
-  Response response;
-
+  net.Response response;
   var storage = FlutterSecureStorage();
   String tk = await storage.read(key: "token");
   if(tk==null||tk.length<10)
@@ -125,23 +124,26 @@ Future http(String method, String uri, {Map data}) async {
   
   try{
     if(method=='get')
-      response = await get(url, headers:headers);
+      response = await net.get(url, headers:headers);
     
     if(method=='del')
-      response = await delete(url, headers:headers);
+      response = await net.delete(url, headers:headers);
     
     if(method=='post')
-      response = await post(url, headers:headers, body:data);
+      response = await net.post(url, headers:headers, body:data);
+    
 
     if(method=='put')
-      response = await put(url, headers:headers, body:data);
+      response = await net.put(url, headers:headers, body:data);
 
     if(response!=null && response.statusCode==200)
       return json.decode(response.body);
     else
       return {'error':2,'msg':'服务器错误，请联系管理员。'};
   }catch(e){
+    print("*********************************************");
     print(e.toString());
+    print("*********************************************");
     return {'error':3,'msg':'网络连接超时，设备没有连接到网络？'};
   }
 }

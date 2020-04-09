@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:cfapi/pages/widgets/ruleProposal.dart';
 import 'package:cfapi/services/person.dart';
 import 'package:cfapi/services/rule.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/services/authentication.dart';
+import 'package:provider/provider.dart';
 //import 'package:cfapi/pages/widgets/findPenson.dart';
 
 import 'adminProposal.dart';
@@ -13,6 +15,7 @@ class ScoreProposal extends StatefulWidget {
 }
 
 class _ScoreProposalState extends State<ScoreProposal> {
+  User _user;
   List<String> _suggestions=[];
   List<String> _peoples=[];
   final TextEditingController _ppCtl = TextEditingController();
@@ -26,9 +29,10 @@ class _ScoreProposalState extends State<ScoreProposal> {
 
   @override
   void initState() {
-    sugLoading();    
+    sugLoading();  
+    _user=Provider.of<User>(context, listen: false);  
+    _peoples.add(_user.name);
     super.initState();
-  
   }
   void post(Map<String,dynamic> data) async{
     Map result= await http('post','proposal', data:data);
@@ -83,7 +87,7 @@ class _ScoreProposalState extends State<ScoreProposal> {
         ),
       );
       rts['description']=cmt;
-      rts['targets']=_peoples;
+      rts['targets'] = jsonEncode(_peoples);
       post(rts);
     }
   }

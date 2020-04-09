@@ -20,7 +20,6 @@ class Rule{
       property= json ['property'],
       description= json ['description'];
 
-
   static Future<List<Rule>> browse() async {
     Map result= await http('get','rules');
     if(result['error']==0){
