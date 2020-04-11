@@ -113,7 +113,7 @@ class Proposal(Resource):
 			sql='''SELECT v.id,v.name,v.department_id AS dpt,v.duty_id,T.role FROM 
 				visitor AS V LEFT JOIN duty AS T ON T.id=V.duty_id
 				WHERE v.auth=1 and T.role is not null;'''
-				
+
 			fs=db.session.execute(sql)
 			fls=[]
 			for v in fs:
@@ -132,11 +132,8 @@ class Proposal(Resource):
 					continue					
 			succeed=[]
 			failed=[]
-			tgt=[]			
-			for t in args["targets"].split(" "):
-				if len(t)>1:
-					tgt.append(t)
-			for t in tgt:
+			tgts=json.loads(args["targets"])
+			for t in tgts:
 				bfd=False
 				for f in fls:
 					if t==f[1]:
@@ -148,28 +145,26 @@ class Proposal(Resource):
 						break
 				if not bfd:
 					failed.append(t)
+					
 			if len(succeed)>0:
 				apv=333
-				if state=='':
-					state='提交成功' #if self.x.uid>0 else '通过审核'			
+				state='提交成功' #if self.x.uid>0 else '通过审核'			
 				sql=''
-				sq='insert into propose(proposer_id,approver_id,beneficiary_id,refer_id,score,classify,refer,state,description,create_at) VALUES'
+				sq='insert into propose(proposer_id,approver_id,beneficiary_id,refer_id,score,classify,refer,state,description) VALUES'
 				for sc in succeed:
 					desc=args['description'].replace('"','“').replace("'","‘")
 					if sc==self.x.vid and args['classify']=="B-":
-						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], round(args['score']/2), args['classify'], args['refer'], state, desc, args['month'])
+						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], round(args['score']/2), args['classify'], args['refer'], state, desc)
 					else:
-						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], args['score'], args['classify'], args['refer'], state, desc, args['month'])						
+						sql +='''(%s,%s,%s,%s,%s,"%s","%s","%s","%s"),'''%(pid, apv, sc, args['rid'], args['score'], args['classify'], args['refer'], state, desc)						
 				sql=sq+sql[0:-1]
 				db.session.execute(sql)
 				db.session.commit()
 				if len(failed)>0:
-					return jsonify(dict({'error':26,'msg':'%s 未找到，或不在奖扣权限内！%s 奖扣成功。' % (failed, succeed)},**self.x.had))
-				e0.update(self.x.had)
+					return jsonify({'error':26,'msg':'%s 未找到，或不在奖扣权限内！%s 奖扣成功。' % (failed, succeed)})
 				return e0
 			return {'error':26,'msg':'%s 未找到，或不在奖扣权限内！'%failed}
-		return e2	
-
+		return e2
 api.add_resource(Proposal,'/proposal')
 	
 class Person(Resource):
@@ -243,6 +238,17 @@ class Rule(Resource):
 				pp.append({"id":r.id,"classify":r.classify,"serial":r.serial,"score":r.score,"serial":r.serial,"department":r.department,"description":r.description,"property":r.property})
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
+	def post(self):
+		if self.x.xvid:
+			parser.add_argument('isDpt')
+			parser.add_argument('flt')
+			parser.add_argument('st')
+			parser.add_argument('sr')
+			parser.add_argument('key')
+			args=parser.parse_args()
+			flt=args['flt'][1:-1]
+			print(flt)
+		return e2 
 
 api.add_resource(Rule,'/rules')
 

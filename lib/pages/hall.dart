@@ -45,9 +45,9 @@ class _HallState extends State<Hall> {
       ),
 
       body: Center(child: <Widget>[
-        Text('Index 0: Home'),
-        Text('Index 1: Business'),
-        Text('Index 2: School'),
+        Text('努力开发中 ... '),
+        Text('努力开发中 ... '),
+        Text('努力开发中 ... '),
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(

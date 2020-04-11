@@ -43,8 +43,8 @@ class _ApproveState extends State<Approve> {
       ),
 
       body: Center(child: <Widget>[
-        Text('Index 0: Home'),
-        Text('Index 1: Business'),
+        Text('努力开发中 ... '),
+        Text('努力开发中 ... '),
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(

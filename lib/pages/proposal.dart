@@ -1,4 +1,5 @@
-import 'package:cfapi/pages/widgets/scoreProposal.dart';
+import 'package:cfapi/pages/proposal/proposalProgress.dart';
+import 'package:cfapi/pages/proposal/scoreProposal.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:provider/provider.dart';
@@ -45,8 +46,8 @@ class _ProposalState extends State<Proposal> {
 
       body: Center(child: <Widget>[
         ScoreProposal(),
-        Text('Index 1: 产值申请'),
-        Text('Index 2: 审核进度'),
+        Text('努力开发中 ... '),
+        ProposalProgress(),
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(

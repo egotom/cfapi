@@ -1,10 +1,7 @@
 import 'package:cfapi/config/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:cfapi/pages/sideBar.dart';
-import 'package:provider/provider.dart';
 import 'package:cfapi/services/score.dart';
 import 'package:cfapi/services/authentication.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
 
 class MyScore extends StatefulWidget {

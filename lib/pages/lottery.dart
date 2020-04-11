@@ -46,9 +46,9 @@ class _LotteryState extends State<Lottery> {
       ),
 
       body: Center(child: <Widget>[
-        Text('红券'),
-        Text('银券'),
-        Text('金券'),
+        Text('努力开发中 ... '),
+        Text('努力开发中 ... '),
+        Text('努力开发中 ... '),
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(

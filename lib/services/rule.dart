@@ -27,4 +27,13 @@ class Rule{
       return rules;
     }
   }
+  static Future<List<Rule>> query(Map data) async {
+    print('-------------------------------------------');
+    print(data.toString());
+    Map result= await http('post','rules',data:data);
+    if(result['error']==0){
+      List<Rule> rules= result['lst'].map((json) => Rule.fromJson(json)).cast<Rule>().toList();
+      return rules;
+    }
+  }
 }

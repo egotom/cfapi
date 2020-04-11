@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:cfapi/pages/widgets/ruleProposal.dart';
+import 'ruleProposal.dart';
 import 'package:cfapi/services/person.dart';
-import 'package:cfapi/services/rule.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:provider/provider.dart';
@@ -37,10 +36,10 @@ class _ScoreProposalState extends State<ScoreProposal> {
   void post(Map<String,dynamic> data) async{
     Map result= await http('post','proposal', data:data);
     Scaffold.of(context).showSnackBar(
-      SnackBar(content: Text(result['msg'])),
+      SnackBar(content: Text(result['msg'],style:TextStyle(color:Colors.white)),
+        backgroundColor: Colors.green,
+      ),
     );
-    print('----------------------------------------------------');
-    print(data.toString());
   }
 
   void nextStep(bool isRule) async{
@@ -63,33 +62,25 @@ class _ScoreProposalState extends State<ScoreProposal> {
         );
       return ;
     }   
+    Map <String, dynamic> rts=null;
     if(isRule){
-      Rule rule = await Navigator.push(
-        context,
+      rts = await Navigator.push(context,
         MaterialPageRoute(
           builder: (BuildContext context) => RuleProposal(),
         ),
-      );
-
-      if (rule != null) {
-        Scaffold.of(context).showSnackBar(
-          SnackBar(
-            content: Text("get a rule for you"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      );      
     }else{
-      Map <String, dynamic> rts=await Navigator.push(
-        context,
+      rts=await Navigator.push(context,
         MaterialPageRoute(
           builder: (BuildContext context) => AdminProposal(),
         ),
       );
+    }
+    if(rts!=null){
       rts['description']=cmt;
       rts['targets'] = jsonEncode(_peoples);
       post(rts);
-    }
+    }   
   }
 
   @override
