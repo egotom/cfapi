@@ -134,10 +134,10 @@ class _RuleProposalState extends State<RuleProposal> {
           suffixIcon: IconButton(
             icon: Icon(Icons.search), 
             onPressed: (){
+              if(_filters.length<1 && _ST=='' && _srCtl.text=='' && _keyCtl.text=='')
+                return;
               Map <String, dynamic> fb={'isDpt':_mod.toString(),'flt':jsonEncode(_filters),'st':_ST,'sr':_srCtl.text,'key':_keyCtl.text};
-              setState(() {
-                _trl=0;
-              });
+              setState(() {_trl=0;});
               ruleQuery(fb);
               FocusScope.of(context).requestFocus(FocusNode());
             }

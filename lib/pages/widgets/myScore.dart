@@ -63,7 +63,7 @@ class _MyScoreState extends State<MyScore> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,                      
                     children: <Widget>[
-                      Text('提交：${score.name}'),
+                      Text('提交：${score.pname}'),
                       //Text('类型：${score.refer}'),
                       Text('奖扣：${score.classify}${score.score}',
                         style:TextStyle(

@@ -2,6 +2,7 @@ import 'package:cfapi/pages/proposal/proposalDetail.dart';
 import 'package:flutter/material.dart';
 import 'package:cfapi/services/score.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ProposalProgress extends StatefulWidget {
   @override
@@ -30,7 +31,6 @@ class _ProposalProgressState extends State<ProposalProgress> {
           return picked;
         }
         break;
-
       default:
         int id=tpIdex==2?0:tpIdex+1;
         int idx=opt==tpClass?id:0;
@@ -46,25 +46,54 @@ class _ProposalProgressState extends State<ProposalProgress> {
   
   Widget ScoreList( BuildContext context, int index,  AsyncSnapshot snapshot){
     Score score = scores[index];
-    return Card(
-      color: Colors.grey[200],
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.3,
+      actions: <Widget>[
+        IconSlideAction(
+          caption: '详情',
+          color: Colors.blue,
+          icon: Icons.more_horiz,
+          onTap: () {
+            Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) =>proposalDetail(score)));
+          },
+        ),
+      ],
+      secondaryActions: <Widget>[        
+        IconSlideAction(
+          caption: '撤销',
+          color: Colors.red,
+          icon: Icons.cancel,
+          onTap: () async{
+            bool ok= await Score.remove(score.id);
+            if(ok)
+              setState(() {
+                scores.remove(score);
+              });
+          },
+        ),
+      ],
       child: ListTile(
-        title: Text('提交：${score.name}  奖扣：${score.classify} ${score.score}'),
+        title: Text('提交：${score.tname}  奖扣：${score.classify} ${score.score}'),
         isThreeLine: false,
-        leading: CircleAvatar(child: Text('PJ')),
+        leading: score.state=='提交成功'?
+          CircleAvatar(
+            child: Icon(Icons.hourglass_empty)
+          ): 
+          CircleAvatar(
+            backgroundColor: Colors.red,
+            child: Icon(Icons.report_problem)
+          ),
         subtitle: Text(
           score.description,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         onTap: () {
-          Navigator.push(context,
-            MaterialPageRoute(
-              builder: (BuildContext context) =>proposalDetail(score.id),
-            ),
-          );
+          Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) =>proposalDetail(score)));
         },
       ), 
+      key: ObjectKey(score),
     );
   }
 
@@ -100,7 +129,7 @@ class _ProposalProgressState extends State<ProposalProgress> {
                   if (snapshot.hasError)
                     return SliverToBoxAdapter(child: Center(child:Text("error: ${snapshot.error}")));
                   return SliverFixedExtentList(
-                    itemExtent: 90.0,
+                    itemExtent: 75.0,
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
                         int count=snapshot?.data?.length??0;
