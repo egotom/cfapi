@@ -80,6 +80,60 @@ def verify(request):
 		print(request.headers)
 	return rst
 
+class Progress(Resource):
+	def __init__(self):
+		self.x=verify(request)		
+	def get(self):
+		if self.x.vid:
+			page = request.args.get('page', type=int)
+			pps=[]
+			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.state, p.description,p.create_at 
+				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' 
+				AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc;'''%self.x.vid
+			if page:
+				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at,p.state 
+				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				pname=r.pname if r.pname else ''
+				rule=r.rule if r.rule else ''
+				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state, "rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+			
+			return jsonify(dict({"lst":pp},**e0))
+		return e2
+		
+	def post(self):
+		parser.add_argument('range')
+		args=parser.parse_args()
+		dt=args['range'][1:-1].split(',')
+		if self.x.vid and self.x.did and self.x.tid:
+			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at,p.state 
+				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id
+				left join rule as r on r.id=p.refer_id where p.proposer_id=%s and p.create_at between '%s' and '%s' and state!= '通过审核' order by p.create_at desc;  '''%(self.x.vid,dt[0],dt[1])
+			pps = db.session.execute(sql)
+			pp=[]
+			for r in pps:
+				pname=r.pname if r.pname else ''
+				rule=r.rule if r.rule else ''
+				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+			
+			return jsonify(dict({"lst":pp},**e0))
+		return e2
+		
+	def delete(self,id):
+		pp=Propose.query.filter_by(id=id)
+		po=pp.first()
+		if po:
+			if po.proposer_id==self.x.vid and po.state=='提交成功':
+				pp.delete()
+				db.session.commit()	
+				return e0
+			return e2
+		return e3
+		
+api.add_resource(Progress,'/progress', '/progress/<int:id>')
+	
 class Proposal(Resource):
 	def __init__(self):
 		self.x=verify(request)		
@@ -193,16 +247,17 @@ class Score(Resource):
 		if self.x.vid:
 			page = request.args.get('page', type=int)
 			pps=[]
-			sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
-				left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc;'''%self.x.vid
+			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
+				left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc;'''%self.x.vid
 			if page:
-				sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
+				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
 			pps = db.session.execute(sql)
 			pp=[]
 			for r in pps:
-				name=r.name if r.name else ''
+				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"name":name,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
 		
@@ -211,14 +266,15 @@ class Score(Resource):
 		args=parser.parse_args()
 		dt=args['range'][1:-1].split(',')
 		if self.x.vid and self.x.did and self.x.tid:
-			sql='''select p.id,v.name,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
-				left join visitor as v on p.proposer_id=v.id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and p.create_at between '%s' and '%s' and state= '通过审核' order by p.create_at desc;'''%(self.x.vid,dt[0],dt[1])
+			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at 
+				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and p.create_at between '%s' and '%s' and state= '通过审核' order by p.create_at desc;'''%(self.x.vid,dt[0],dt[1])
 			pps = db.session.execute(sql)
 			pp=[]
 			for r in pps:
-				name=r.name if r.name else ''
+				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"name":name,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
 		
@@ -239,15 +295,47 @@ class Rule(Resource):
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
 	def post(self):
-		if self.x.xvid:
+		if self.x.vid:
 			parser.add_argument('isDpt')
 			parser.add_argument('flt')
 			parser.add_argument('st')
 			parser.add_argument('sr')
 			parser.add_argument('key')
 			args=parser.parse_args()
-			flt=args['flt'][1:-1]
-			print(flt)
+			sq=''			
+			if args['st'] in ['A+','B+','C+','A-','B-','C-']:
+				sq=sq+''' classify='%s' ''' % args['st'] 
+			if len(args['key'])>0:
+				if len(sq)>0:
+					sq=sq+''' and description like '%'''+args['key']+'''%' '''
+				else:
+					sq=sq+''' description like '%'''+args['key']+'''%' '''
+			if len(args['sr'])>0:				
+				if len(sq)>0:
+					sq=sq+''' and serial like '%''' + args['sr']+'''%' '''
+				else:
+					sq=sq+''' serial like '%''' + args['sr']+'''%' '''
+				
+			if len(args['flt'])>4:
+				flt=args['flt'][1:-1]
+				if args['isDpt']=='true':					
+					if len(sq)>0:
+						sq=sq+''' and (department IN (%s) or department is null)''' % flt 
+					else:
+						sq=sq+''' department IN (%s) or department is null''' % flt 
+				else:
+					if len(sq)>0:
+						sq=sq+''' and (property IN (%s) or property is null)''' % flt 
+					else:
+						sq=sq+''' property IN (%s) or property is null''' % flt 
+			if len(sq)>2:
+				sq='select * from rule where '+sq+' limit 50;'
+			else:
+				return e8
+			print(sq,'##############################')
+			pps = db.session.execute(sq)
+			lst=[{"id":r.id,"classify":r.classify,"serial":r.serial,"score":r.score,"serial":r.serial,"department":r.department,"description":r.description,"property":r.property} for r in pps]
+			return jsonify(dict({"lst":lst},**e0))
 		return e2 
 
 api.add_resource(Rule,'/rules')

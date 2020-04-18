@@ -33,9 +33,10 @@ class proposalDetail extends StatelessWidget {
           Text('提交：${score.pname}'),
           Text('奖扣对象：${score.tname}'),
           Text('奖扣：${score.classify} ${score.score}'),
-          Text(score.description),
+          Text(score.description),          
+          Text(score.rule),
           Text(score.create_at),
-          Text(score.rule)
+          Text(score.state)
         ],
       )),
     );

@@ -51,16 +51,6 @@ class _ProposalProgressState extends State<ProposalProgress> {
       actionExtentRatio: 0.3,
       actions: <Widget>[
         IconSlideAction(
-          caption: '详情',
-          color: Colors.blue,
-          icon: Icons.more_horiz,
-          onTap: () {
-            Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) =>proposalDetail(score)));
-          },
-        ),
-      ],
-      secondaryActions: <Widget>[        
-        IconSlideAction(
           caption: '撤销',
           color: Colors.red,
           icon: Icons.cancel,
@@ -70,6 +60,17 @@ class _ProposalProgressState extends State<ProposalProgress> {
               setState(() {
                 scores.remove(score);
               });
+          },
+        ),
+        
+      ],
+      secondaryActions: <Widget>[        
+        IconSlideAction(
+          caption: '详情',
+          color: Colors.blue,
+          icon: Icons.more_horiz,
+          onTap: () {
+            Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) =>proposalDetail(score)));
           },
         ),
       ],
