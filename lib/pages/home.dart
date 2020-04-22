@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cfapi/pages/home/MyScore.dart';
-
 import 'home/myRank.dart';
 
 class Home extends StatefulWidget {

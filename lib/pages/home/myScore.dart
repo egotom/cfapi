@@ -257,6 +257,7 @@ class _ScoreFilterState extends State<ScoreFilter> {
                           ),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
                               Text('${a-aa}' ,style:MyTheme().scdf),
                               Text('$a' ,style:MyTheme().scdf),
@@ -292,6 +293,7 @@ class _ScoreFilterState extends State<ScoreFilter> {
                           ),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
                               Text('${b-bb}' ,style:MyTheme().scdf),
                               Text('$b' ,style:MyTheme().scdf),
@@ -327,6 +329,7 @@ class _ScoreFilterState extends State<ScoreFilter> {
                           ),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
                               Text('${c-cc}' ,style:MyTheme().scdf),
                               Text('$c' ,style:MyTheme().scdf),
@@ -341,7 +344,6 @@ class _ScoreFilterState extends State<ScoreFilter> {
               ),
             ],
           )
-          
         ] 
       ),
     );
