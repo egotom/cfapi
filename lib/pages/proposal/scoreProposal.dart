@@ -55,11 +55,11 @@ class _ScoreProposalState extends State<ScoreProposal> {
     }
     if(cmt.length<3){
       Scaffold.of(context).showSnackBar(
-          SnackBar(
-            content: Text("填写正确的奖扣说明。",style:TextStyle(color:Colors.red) ),
-            backgroundColor: Colors.yellow,
-          ),
-        );
+        SnackBar(
+          content: Text("填写正确的奖扣说明。",style:TextStyle(color:Colors.red) ),
+          backgroundColor: Colors.yellow,
+        ),
+      );
       return ;
     }   
     Map <String, dynamic> rts=null;

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'lottery/redLottery.dart';
+import 'lottery/silverLottery.dart';
+import 'lottery/goldLottery.dart';
+
 class Lottery extends StatefulWidget {
   @override
   _LotteryState createState() => _LotteryState();
@@ -46,9 +50,9 @@ class _LotteryState extends State<Lottery> {
       ),
 
       body: Center(child: <Widget>[
-        Text('努力开发中 ... '),
-        Text('努力开发中 ... '),
-        Text('努力开发中 ... '),
+        RedLottery(),
+        SilverLottery(),
+        GoldLottery()
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(
@@ -64,7 +68,7 @@ class _LotteryState extends State<Lottery> {
           BottomNavigationBarItem(
             icon: Icon(Icons.card_giftcard, color: Colors.yellow),
             title: Text('金券'),
-          ),
+          )
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue[400],

@@ -79,7 +79,194 @@ def verify(request):
 	else:
 		print(request.headers)
 	return rst
-
+	
+def sumlty(cls,id):
+	lbs='红券'
+	if cls=='silver':
+		lbs='银券'
+	if cls=='gold':
+		lbs='金券'
+	sql=''' SELECT l.beneficiary_id AS id, v.team AS M,  l.state+0 AS S, COUNT(l.id) AS T 
+		FROM lottery AS l LEFT JOIN visitor AS v ON l.beneficiary_id=v.id
+		WHERE v.team IS NOT NULL AND v.auth=1 AND l.classify='%s'
+		group BY l.beneficiary_id, l.state ; '''
+	lty=db.session.execute(sql%lbs)
+	lts=[(r.id,r.M,r.S,r.T) for r in lty]
+	my={'avl':0,'usd':0,'bet':0}
+	tms=[]
+	for lt in lts:
+		if lt[0] == id:
+			if lt[2] == 2:
+				my['val']+=lt[3]
+			if lt[2] == 3:
+				my['usd']+=lt[3]
+			if lt[2] == 4 or lt[2] == 1:
+				my['bet']+=lt[3]
+		if lt[1] not in tms:
+			tms.append(lt[1])
+	lst=[]
+	for tm in tms:
+		v=0
+		b=0 
+		for lt in lts:
+			if lt[1] == tm:
+				if lt[2]== 2:
+					v+=lt[3]
+				if lt[2] in(1,4):
+					b+=lt[3]
+		lst.append((tm,v,b))
+	return my,lst
+class Lottery(Resource):
+	def __init__(self):
+		self.x=verify(request)
+	def get(self,cls):
+		if self.x.vid:
+			my,lst=sumlty(cls,self.x.vid)				
+			return jsonify(dict({'lst':lst,'my':my},**e0))
+		return e2
+		
+	def put(self,cls):
+		if self.x.vid:
+			parser.add_argument("qty")
+			args=parser.parse_args()			
+			sql='''SELECT classify,state,COUNT(*) as tt FROM lottery WHERE beneficiary_id=%s group BY classify,state; '''
+			lty=db.session.execute(sql%self.x.vid)
+			R={'T':0,'P':0,'L':0}
+			for ly in lty:
+				if ly.classify=='红券':
+					if ly.state=='未打印':
+						R['T']+=ly.tt
+					if ly.state=='已使用':
+						R['P']+=ly.tt
+					if ly.state=='投注':
+						R['L']+=ly.tt
+			qty=0
+			try:
+				qty=int(args['qty'])
+			except Exception as e:
+				return e33
+			if qty<1:
+				return e33
+			if qty>R['T']:
+				return e34
+			sql='''SELECT l.id,ll.tt from lottery AS l LEFT JOIN (
+				SELECT COUNT(*) AS tt from lottery WHERE state='投注' AND classify='红券') AS ll ON 1=1
+				WHERE l.state ='未打印' AND l.classify='红券' AND l.beneficiary_id=%s; '''
+			lts=db.session.execute(sql%self.x.vid)
+			
+			cpt='A-'
+			cps=db.session.execute('''SELECT DISTINCT(SPLIT_STR(dice, '-', 1)) from lottery WHERE state='已使用' AND classify='红券' AND dice IS NOT null;''')
+			cpr=''
+			for cp in cps:
+				cp=cp[0]
+				if len(cp)>len(cpr):
+					cpr=cp
+				if len(cp)==len(cpr):
+					cpr=max([cp,cpr])
+			if cpr!='':
+				if cpr[-1]=='Z':
+					cpt=cpr+'A-'
+				else:
+					cpt=cpr[:-1]+chr(ord(cpr[-1])+1)+'-'
+			idx=1
+			for lt in lts:
+				sl=lt.tt+idx
+				db.session.execute('''update lottery set state='投注',serial='%s',dice='%s' where id='%s';'''%(cpt+str(sl), cpt+i2t(sl-1), lt.id))
+				if idx==qty:
+					break
+				idx+=1
+			db.session.commit()
+			my,lst=sumlty(cls,self.x.vid)						
+			return jsonify(dict({'lst':lst,'my':my},**e0))
+		return e2
+	
+	def post(self):
+		if self.x.vid:
+			parser.add_argument("from")
+			parser.add_argument("to")
+			parser.add_argument("qty")
+			args=parser.parse_args()		
+			sql='''SELECT classify,state,COUNT(*) as tt FROM lottery WHERE beneficiary_id=%s group BY classify,state ;'''
+			lty=db.session.execute(sql%self.x.vid)
+			G={'T':0,'P':0,'L':0}
+			S={'T':0,'P':0,'L':0}
+			R={'T':0,'P':0,'L':0}
+			for ly in lty:
+				if ly.classify=='金券':					
+					if ly.state=='已打印':
+						G['P']+=ly.tt
+					if ly.state=='未打印':
+						G['L']+=ly.tt
+					if ly.state=='已使用':
+						G['T']+=ly.tt
+				if ly.classify=='银券':					
+					if ly.state=='已打印':
+						S['P']+=ly.tt
+					if ly.state=='未打印':
+						S['L']+=ly.tt
+					if ly.state=='已使用':
+						S['T']+=ly.tt
+				if ly.classify=='红券':
+					if ly.state=='未打印':
+						R['T']+=ly.tt
+					if ly.state=='已使用':
+						R['P']+=ly.tt
+					if ly.state=='投注':
+						R['L']+=ly.tt
+			qty=0
+			try:
+				qty=int(args['qty'])
+			except Exception as e:
+				return e33
+			if args['from']=='R' :
+				if qty>R['T']:
+					return e34
+				R['T']-=qty
+				R['P']+=qty
+			if args['from']=='S' :
+				if qty>S['L']:
+					return e35
+				S['L']-=qty
+				S['T']-=qty
+			if args['to']=='S' and args['from']=='R':
+				if qty%10>0:
+					return e33
+				S['L']+=qty/10
+				S['T']+=qty/10				
+				sql=''
+				for i in range(int(qty/10)):
+					sql+="( "+str(self.x.vid)+",333,'红券兑换。','银券'),"
+				db.session.execute('''INSERT INTO lottery ( beneficiary_id, distributor_id, description, classify) VALUES %s; '''%(sql[:-1]))
+				db.session.execute('''update lottery set state='已使用' where beneficiary_id=%s and state='未打印' and classify='红券' limit %s;'''%(self.x.vid,qty))
+				
+			if args['to']=='G' and args['from']=='R':
+				if qty%50>0:
+					return e33
+				G['L']+=qty/50
+				G['T']+=qty/50
+				sql=''
+				for i in range(int(qty/50)):
+					sql+="( "+str(self.x.vid)+",333,'红券兑换。','金券'),"
+				db.session.execute('''INSERT INTO lottery ( beneficiary_id, distributor_id, description, classify) VALUES %s; '''%(sql[:-1]))
+				db.session.execute('''update lottery set state='已使用' where beneficiary_id=%s and state='未打印' and classify='红券' limit %s;'''%(self.x.vid,qty))
+				
+			if args['to']=='G' and args['from']=='S':
+				if qty%5>0:
+					return e33
+				G['L']+=qty/5
+				G['T']+=qty/5
+				sql=''
+				for i in range(int(qty/5)):
+					sql+="( "+str(self.x.vid)+",333,'银券兑换。','金券'),"
+				db.session.execute('''INSERT INTO lottery ( beneficiary_id, distributor_id, description, classify) VALUES %s; '''%(sql[:-1]))
+				db.session.execute('''update lottery set state='已使用' where beneficiary_id=%s and state='未打印' and classify='银券' limit %s;'''%(self.x.vid,qty))
+			db.session.commit()
+			
+			my,lst=sumlty(cls,self.x.vid)
+			return jsonify(dict({'lst':lst,'my':my},**e0))
+		return e2
+api.add_resource(Lottery,'/lottery/<string:cls>')
+	
 class Progress(Resource):
 	def __init__(self):
 		self.x=verify(request)		
@@ -89,7 +276,7 @@ class Progress(Resource):
 			pps=[]
 			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.state, p.description,p.create_at 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' 
-				AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc;'''%self.x.vid
+				AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc; '''%self.x.vid
 			if page:
 				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at,p.state 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)

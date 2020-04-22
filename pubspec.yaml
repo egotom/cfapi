@@ -17,6 +17,7 @@ dependencies:
   date_range_picker: ^1.0.5
   autocomplete_textfield: ^1.7.3
   flutter_slidable:
+  charts_flutter:
 
 dev_dependencies:
   flutter_test:

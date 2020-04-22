@@ -341,6 +341,7 @@ class _ScoreFilterState extends State<ScoreFilter> {
               ),
             ],
           )
+          
         ] 
       ),
     );

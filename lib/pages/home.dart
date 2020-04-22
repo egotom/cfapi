@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cfapi/pages/sideBar.dart';
-import 'package:provider/provider.dart';
-import 'package:cfapi/services/authentication.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
-import 'package:cfapi/pages/widgets/MyScore.dart';
+import 'package:cfapi/pages/home/MyScore.dart';
+
+import 'home/myRank.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -12,16 +11,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  
-  @override
-  void initState(){
-    super.initState();
-  }
-
-  
-
   int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +39,7 @@ class _HomeState extends State<Home> {
 
       body: Center(child: <Widget>[
         MyScore(),
-        Text('我的排名'),
+        MyRank(),
         Text('统计数据'),
       ].elementAt(_selectedIndex)),
       
