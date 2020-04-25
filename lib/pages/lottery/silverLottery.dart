@@ -64,7 +64,7 @@ class _SilverLotteryState extends State<SilverLottery> {
                         Scaffold.of(context).showSnackBar(SnackBar(content: Text("输入红券数量必须是 10 的整数倍！")));
                         return;
                       }
-                      Map<String,dynamic> result= await http('post','lottery/silver',data:{'from':'R','to':'S','qty':qty});
+                      Map<String,dynamic> result= await http('post','lottery/silver',data:{'from':'R','to':'S','qty':_betCtl.text});
                       if(result['error']==0){
                         setState(() {my=result['my'];});
                         setState(() {lst=result['lst'];});

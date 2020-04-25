@@ -21,12 +21,8 @@ class _RedLotteryState extends State<RedLottery> {
   lottery() async {
     Map<String,dynamic> result= await http('get','lottery/red');
     if(result['error']==0){
-      setState(() {
-        my=result['my'];
-      });
-      setState(() {
-        lst=result['lst'];
-      });
+      setState(() {my=result['my'];});
+      setState(() {lst=result['lst'];});
     }
   }
   @override
@@ -62,18 +58,12 @@ class _RedLotteryState extends State<RedLottery> {
                         );
                         return;
                       }
-                      Map<String,dynamic> result= await http('put','lottery/red',data:{'qty':qty});
+                      Map<String,dynamic> result= await http('put','lottery/red',data:{'qty':_betCtl.text});
                       if(result['error']==0){
-                        setState(() {
-                          my=result['my'];
-                        });
-                        setState(() {
-                          lst=result['lst'];
-                        });
+                        setState(() {my=result['my'];});
+                        setState(() {lst=result['lst'];});
                       }
-                      Scaffold.of(context).showSnackBar(
-                        SnackBar(content: Text(result['msg'])),
-                      );
+                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(result['msg'])));
                     },
                     color: Colors.blue,
                     child: Text('投注红券',style: TextStyle(fontSize: 16,color: Colors.white)),

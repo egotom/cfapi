@@ -86,7 +86,7 @@ class _GoldLotteryState extends State<GoldLottery> {
                         Scaffold.of(context).showSnackBar(SnackBar(content: Text("输入银券数量必须是 5 的整数倍！")));
                         return;
                       }
-                      Map<String,dynamic> result= await http('post','lottery/gold',data:{'from':from,'to':'G','qty':qty});
+                      Map<String,dynamic> result= await http('post','lottery/gold',data:{'from':from,'to':'G','qty':_betCtl.text});
                       if(result['error']==0){
                         setState(() {my=result['my'];});
                         setState(() {lst=result['lst'];});

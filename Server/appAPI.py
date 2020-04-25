@@ -42,11 +42,6 @@ def verify(request):
 			mtoken=jwt.decode(bytes(xtoken, 'utf-8'), cfg['SECRET_KEY'], algorithms=['HS256'],options={'verify_iat': False})			
 		except Exception as e:
 			print('解码验证信息失败：',e)
-			#new_token = Token(token=xtoken)
-			#db.session.add(new_token)
-			#db.session.commit()
-			#db.session.refresh(new_token)
-			#print(new_token)
 			return rst
 		if mtoken['iat'] > time.time():
 			rst.vid=mtoken['vid']
@@ -71,15 +66,180 @@ def verify(request):
 				rst.had['did']=visitor.department_id
 				rst.had['tid']=visitor.duty_id
 			rst.had['xtoken']=str(jwt.encode({'vid':rst.vid,'did':rst.did, 'tid':rst.tid, 'uid':rst.uid, 'iat': time.time()+1200},cfg['SECRET_KEY'],algorithm='HS256'),'utf-8')
-			#new_token = Token(token=xtoken,vid=mtoken['vid'],uid=mtoken['uid'],tid=mtoken['tid'],did=mtoken['did'],sts=rst.__dict__)
-			#db.session.add(new_token)
-			#db.session.commit()
-			#db.session.refresh(new_token)
-		#print(mtoken['vid'],'   ----------------------------  ',rst.vid)
+
 	else:
 		print(request.headers)
 	return rst
-	
+
+class Stats(Resource):
+	def __init__(self):
+		self.x=verify(request)
+	def get(self):
+		if self.x.vid:
+			sql='''SELECT p.beneficiary_id AS i, v.team+0 as t,DATE_FORMAT(p.create_at,'%Y.%m') AS d, p.classify+0 AS c,SUM(p.score) AS s
+			FROM propose AS p LEFT JOIN visitor AS v ON v.id=p.beneficiary_id WHERE p.state='通过审核' and v.auth=1 and v.team is not null
+			group BY p.classify, p.beneficiary_id, DATE_FORMAT(p.create_at,'%Y%m') ORDER BY p.create_at,p.beneficiary_id; '''
+			sd=db.session.execute(sql)
+			sd=[(r.i, r.t, r.d, r.c, int(r.s)) for r in sd]
+			lst=[]
+			tp=[]
+			me=[]	
+			today=datetime.datetime.today()
+			year=str(today.year)
+			month=str(today.month)
+			ym=year+'.'+month
+			uu=[]
+			for r in sd:
+				s=0
+				sm=0
+				sy=0
+				ss=0
+				if (str(r[0])+r[2]) in tp:
+					continue
+				for rr in sd:
+					if r[0]==rr[0]:
+						if r[2]==rr[2]:
+							if rr[3] < 5:
+								s+=rr[4]
+							if rr[3] > 4:
+								s-=rr[4]
+						if r[2]==ym: 
+							if rr[3] < 5:
+								sm+=rr[4]
+							if rr[3] > 4:
+								sm-=rr[4]
+						if r[2].split('.')[0]==year: 
+							if rr[3] < 5:
+								sy+=rr[4]
+							if rr[3] > 4:
+								sy-=rr[4]
+						if rr[3] < 5:
+							ss+=rr[4]
+						if rr[3] > 4:
+							ss-=rr[4]		
+				lst.append((r[0],r[1],r[2],s))
+				uu.append((r[0], r[1], sm, sy, ss))
+				tp.append(str(r[0])+r[2])
+				if r[0] == self.x.vid:
+					me.append((r[0],r[1],r[2],s))
+			sm=[0,0,0,0]		#月	年	累计
+			rk=[]			
+			for r in me:
+				ar=1
+				at=1
+				for rr in lst:					
+					if r[0]==rr[0]:
+						continue
+					if r[2]==rr[2] and rr[3]>r[3]:
+						ar+=1
+						if r[1]==rr[1]:
+							at+=1
+				rk.append((r[2], r[3], ar, at))
+				sm[2]+=r[3]
+				sm[3]=r[0]
+				if r[2]==ym:
+					sm[0]+=r[3]
+				if year==r[2].split('.')[0]:
+					sm[1]+=r[3]
+			th=[[sm[0],1,1],[sm[1],1,1],[sm[2],1,1]]
+			for u in uu:
+				if u[0]!=self.x.vid:
+					if sm[0]>u[2]:
+						th[0][1]+=1
+						if u[1]==sm[3]:
+							th[0][2]+=1
+					if sm[1]>u[3]:
+						th[1][1]+=1
+						if u[1]==sm[3]:
+							th[1][2]+=1
+					if sm[2]>u[2]:
+						th[2][1]+=1
+						if u[1]==sm[3]:
+							th[2][2]+=1
+			print(th)
+			return jsonify(dict({'lst':rk},**e0))
+		return e2
+api.add_resource(Stats,'/stats')
+
+class Rank(Resource):
+	def __init__(self):
+		self.x=verify(request)
+	def get(self):
+		if self.x.vid:
+			sql='''SELECT p.beneficiary_id AS i, v.team+0 as t, DATE_FORMAT(p.create_at,'%Y.%m') AS d, p.classify+0 AS c,SUM(p.score) AS s
+			FROM propose AS p LEFT JOIN visitor AS v ON v.id=p.beneficiary_id  
+			WHERE  p.state='通过审核' and DATE_FORMAT(p.create_at, '%Y')= DATE_FORMAT(curdate(), '%Y') and v.auth=1 and v.team is not null
+			group BY DATE_FORMAT(p.create_at,'%Y%m'),p.classify,p.beneficiary_id ORDER BY p.create_at,p.beneficiary_id; '''
+			smp=db.session.execute(sql)
+			sp=[(r.i, r.t, r.d, r.c, int(r.s)) for r in smp]
+			lst=[]
+			tp=[]
+			me=[]
+			for r in sp:
+				a=0
+				b=0
+				c=0
+				if (str(r[0])+r[2]) in tp:
+					continue
+				for rr in sp:
+					if r[0]==rr[0] and r[2]==rr[2]:
+						if rr[3]==1:
+							a+=rr[4]
+						if rr[3]==2:
+							b+=rr[4]
+						if rr[3]==3:
+							c+=rr[4]  
+						if rr[3]==4:
+							a-=rr[4]  
+						if rr[3]==5:
+							b-=rr[4]  
+						if rr[3]==6:
+							c-=rr[4]							
+				lst.append((r[0],r[1],r[2],a,b,c,a+b+c))
+				tp.append(str(r[0])+r[2])
+				if r[0]==self.x.vid:
+					me.append((r[0],r[1],r[2],a,b,c,a+b+c))
+					
+			rk=[]
+			for r in me:
+				ar=1
+				at=1
+				br=1
+				bt=1
+				cr=1
+				ct=1
+				sr=1
+				st=1
+				for rr in lst:
+					if r[0]==rr[0]:
+						continue
+					if r[2]==rr[2]:
+						if rr[3]>r[3]:
+							ar+=1
+							if r[1]==rr[1]:
+								at+=1
+						if rr[4]>r[4]:
+							br+=1
+							if r[1]==rr[1]:
+								bt+=1
+						if rr[5]>r[5]:
+							cr+=1
+							if r[1]==rr[1]:
+								ct+=1
+						if rr[6]>r[6]:
+							sr+=1
+							if r[1]==rr[1]:
+								st+=1
+								
+				rk.append((r[2], 'A', ar, at))
+				rk.append((r[2], 'B', br, bt))
+				rk.append((r[2], 'C', cr, ct))
+				rk.append((r[2], '总分', sr, st))				
+			return jsonify(dict({'lst':rk},**e0))
+		return e2
+			
+api.add_resource(Rank,'/rank')
+
 def sumlty(cls,id):
 	lbs='红券'
 	if cls=='silver':
@@ -97,7 +257,7 @@ def sumlty(cls,id):
 	for lt in lts:
 		if lt[0] == id:
 			if lt[2] == 2:
-				my['val']+=lt[3]
+				my['avl']+=lt[3]
 			if lt[2] == 3:
 				my['usd']+=lt[3]
 			if lt[2] == 4 or lt[2] == 1:
@@ -116,6 +276,37 @@ def sumlty(cls,id):
 					b+=lt[3]
 		lst.append((tm,v,b))
 	return my,lst
+	
+	
+# 10进制转6进制，输出字符串。
+def i2s(x): 
+	output =""
+	ret = int(x/6)
+	leave = x%6
+	if ret == 0:
+		return str(leave)
+	output = i2s(ret) + str(leave)
+	return output
+	
+# 10进制转骰子码，输出字符串。
+def i2m(x): 
+	output =""
+	ret = int(x/6)
+	leave = x%6
+	if ret == 0:
+		return str(leave if leave!=0 else 6)
+	output = i2m(ret) + str(leave if leave!=0 else 6)
+	return output
+
+def i2t(x): 
+	output =""
+	ret = int(x/6)
+	leave = x%6
+	if ret == 0:
+		return str(leave+1)
+	output = i2t(ret) + str(leave+1)
+	return output
+	
 class Lottery(Resource):
 	def __init__(self):
 		self.x=verify(request)

@@ -3,6 +3,7 @@ import 'package:cfapi/pages/sideBar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cfapi/pages/home/MyScore.dart';
 import 'home/myRank.dart';
+import 'home/myStats.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -39,7 +40,7 @@ class _HomeState extends State<Home> {
       body: Center(child: <Widget>[
         MyScore(),
         MyRank(),
-        Text('统计数据'),
+        MyStats(),
       ].elementAt(_selectedIndex)),
       
       bottomNavigationBar: BottomNavigationBar(

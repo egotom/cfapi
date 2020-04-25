@@ -115,27 +115,20 @@ Future http(String method, String uri, {Map data}) async {
   var storage = FlutterSecureStorage();
   String tk = await storage.read(key: "token");
   if(tk==null||tk.length<10)
-    return {'error':1,'msg':'账号验证失败，请重新登录。'};
-  
+    return {'error':1,'msg':'账号验证失败，请重新登录。'};  
   Map<String, String> headers = {
     'Accept': 'application/json',
     'xtoken': tk
-  };
-  
+  };  
   try{
     if(method=='get')
-      response = await net.get(url, headers:headers);
-    
+      response = await net.get(url, headers:headers);    
     if(method=='del')
-      response = await net.delete(url, headers:headers);
-    
+      response = await net.delete(url, headers:headers);    
     if(method=='post')
-      response = await net.post(url, headers:headers, body:data);
-    
-
+      response = await net.post(url, headers:headers, body:data);    
     if(method=='put')
       response = await net.put(url, headers:headers, body:data);
-
     if(response!=null && response.statusCode==200)
       return json.decode(response.body);
     else
