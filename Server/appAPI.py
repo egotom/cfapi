@@ -86,14 +86,17 @@ class Stats(Resource):
 			me=[]	
 			today=datetime.datetime.today()
 			year=str(today.year)
-			month=str(today.month)
+			month=str(today.month) if today.month>9 else '0'+str(today.month)
 			ym=year+'.'+month
 			uu=[]
+			ui=[]
+			ue=[0,0,0,0,0]
 			for r in sd:
-				s=0
+				s=0		
 				sm=0
 				sy=0
 				ss=0
+				bf= (r[0] not in ui)
 				if (str(r[0])+r[2]) in tp:
 					continue
 				for rr in sd:
@@ -103,58 +106,59 @@ class Stats(Resource):
 								s+=rr[4]
 							if rr[3] > 4:
 								s-=rr[4]
-						if r[2]==ym: 
+						if bf:		
+							if rr[2]==ym:
+								if rr[3] < 5:
+									sm+=rr[4]
+								if rr[3] > 4:
+									sm-=rr[4]
+							if rr[2].split('.')[0]==year: 
+								if rr[3] < 5:
+									sy+=rr[4]
+								if rr[3] > 4:
+									sy-=rr[4]
 							if rr[3] < 5:
-								sm+=rr[4]
+								ss+=rr[4]
 							if rr[3] > 4:
-								sm-=rr[4]
-						if r[2].split('.')[0]==year: 
-							if rr[3] < 5:
-								sy+=rr[4]
-							if rr[3] > 4:
-								sy-=rr[4]
-						if rr[3] < 5:
-							ss+=rr[4]
-						if rr[3] > 4:
-							ss-=rr[4]		
-				lst.append((r[0],r[1],r[2],s))
-				uu.append((r[0], r[1], sm, sy, ss))
+								ss-=rr[4]
+				if bf:
+					ui.append(r[0])
+					uu.append((r[0], r[1], sm, sy, ss))	
+					if r[0] == self.x.vid:
+						ue=(r[0],r[1], sm, sy, ss)
+				lst.append((r[0],r[1],r[2],s))				
 				tp.append(str(r[0])+r[2])
 				if r[0] == self.x.vid:
-					me.append((r[0],r[1],r[2],s))
-			sm=[0,0,0,0]		#月	年	累计
+					me.append((r[0],r[1],r[2],s))					
+
 			rk=[]			
 			for r in me:
 				ar=1
 				at=1
-				for rr in lst:					
-					if r[0]==rr[0]:
+				
+				for rr in lst:	
+					if r[0] == rr[0]:						
 						continue
 					if r[2]==rr[2] and rr[3]>r[3]:
 						ar+=1
 						if r[1]==rr[1]:
 							at+=1
 				rk.append((r[2], r[3], ar, at))
-				sm[2]+=r[3]
-				sm[3]=r[0]
-				if r[2]==ym:
-					sm[0]+=r[3]
-				if year==r[2].split('.')[0]:
-					sm[1]+=r[3]
-			th=[[sm[0],1,1],[sm[1],1,1],[sm[2],1,1]]
+			print(ue,'----------------------------')	
+			th=[[ue[2],1,1],[ue[3],1,1],[ue[4],1,1]]
 			for u in uu:
-				if u[0]!=self.x.vid:
-					if sm[0]>u[2]:
+				if u[0]!=ue[0]:
+					if u[2] > ue[2]:
 						th[0][1]+=1
-						if u[1]==sm[3]:
+						if u[1]==ue[1]:
 							th[0][2]+=1
-					if sm[1]>u[3]:
+					if u[3] > ue[3]:
 						th[1][1]+=1
-						if u[1]==sm[3]:
+						if u[1]==ue[1]:
 							th[1][2]+=1
-					if sm[2]>u[2]:
+					if u[4] > ue[4]:
 						th[2][1]+=1
-						if u[1]==sm[3]:
+						if u[1]==ue[1]:
 							th[2][2]+=1
 			print(th)
 			return jsonify(dict({'lst':rk},**e0))
