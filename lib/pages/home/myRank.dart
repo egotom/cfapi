@@ -1,6 +1,7 @@
 import 'package:cfapi/pages/widgets/tableItem.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class MyRank extends StatefulWidget {
   @override
@@ -9,6 +10,7 @@ class MyRank extends StatefulWidget {
 
 class _MyRankState extends State<MyRank> {
   List lst=[];
+  bool loading=true;
   @override
   void initState() {
     rank();
@@ -19,13 +21,14 @@ class _MyRankState extends State<MyRank> {
     Map<String,dynamic> result= await http('get','rank');
     if(result['error']==0){
       setState(() {lst=result['lst'];});
+      loading=false;
     }
   }
 
   @override
   Widget build(BuildContext context) {  
     return SingleChildScrollView(      
-      child: Column(
+      child:loading? SpinKitCircle(color: Colors.blue, size: 70): Column(
         children: <Widget>[
           SizedBox(height: 20),
           Padding(

@@ -41,21 +41,21 @@ class _SideBarState extends State<SideBar> {
             leading: Icon(Icons.star, color: widget._ds=='home' ? Colors.blue[400]:Colors.grey[600], size: 23.0),
             onTap: ()=>Navigator.pushReplacementNamed(context, '/home')
           ),
-          ListTile(
-            title: Text('积分大厅',style: TextStyle(fontSize: 18.0, color:widget._ds=='hall'? Colors.blue[400]:Colors.black)),
-            leading: Icon(Icons.account_balance , color: widget._ds=='hall'?Colors.blue[400]:Colors.grey[600], size: 23.0),
-            onTap: ()=>Navigator.pushReplacementNamed(context, '/hall')
-          ),
+          //ListTile(
+          //  title: Text('积分大厅',style: TextStyle(fontSize: 18.0, color:widget._ds=='hall'? Colors.blue[400]:Colors.black)),
+          //  leading: Icon(Icons.account_balance , color: widget._ds=='hall'?Colors.blue[400]:Colors.grey[600], size: 23.0),
+          //  onTap: ()=>Navigator.pushReplacementNamed(context, '/hall')
+          //),
           ListTile(
             title: Text('积分申请',style: TextStyle(fontSize: 18.0, color:widget._ds=='proposal'? Colors.blue[400]:Colors.black)),
             leading: Icon(Icons.iso, color: widget._ds=='proposal'? Colors.blue[400]:Colors.grey[600], size: 23.0),
             onTap: ()=>Navigator.pushReplacementNamed(context, '/proposal')
           ),
-          ListTile(
-            title: Text('积分审批',style: TextStyle(fontSize: 18.0, color:widget._ds=='approve'? Colors.blue[400]:Colors.black)),
-            leading: Icon(Icons.school, color: widget._ds=='approve'? Colors.blue[400]:Colors.grey[600], size: 23.0),
-            onTap: ()=>Navigator.pushReplacementNamed(context, '/approve')
-          ),
+          //ListTile(
+          //  title: Text('积分审批',style: TextStyle(fontSize: 18.0, color:widget._ds=='approve'? Colors.blue[400]:Colors.black)),
+          //  leading: Icon(Icons.school, color: widget._ds=='approve'? Colors.blue[400]:Colors.grey[600], size: 23.0),
+          //  onTap: ()=>Navigator.pushReplacementNamed(context, '/approve')
+          //),
           ListTile(
             leading: Icon(Icons.card_giftcard, color: widget._ds=='lottery'? Colors.blue[400]:Colors.grey[600], size: 23.0),
             title: Text('我的奖券',style: TextStyle(fontSize: 18.0, color:widget._ds=='lottery'? Colors.blue[400]:Colors.black)),

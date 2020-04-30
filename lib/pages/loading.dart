@@ -41,7 +41,7 @@ class _LoadingState extends State<Loading> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SpinKitFadingCube(color: Colors.white,size: 50.0),
+            SpinKitFadingCube(color: Colors.white,size: 70.0),
             SizedBox(height: 60.0),
             _se?Text('网络连接超时，设备没有连接到网络？',style:TextStyle(color:Colors.white,fontSize:18.0)):
               SizedBox(height: 3.0),

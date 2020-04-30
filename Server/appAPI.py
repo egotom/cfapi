@@ -81,7 +81,7 @@ class Stats(Resource):
 			group BY p.classify, p.beneficiary_id, DATE_FORMAT(p.create_at,'%Y%m') ORDER BY p.create_at,p.beneficiary_id; '''
 			sd=db.session.execute(sql)
 			sd=[(r.i, r.t, r.d, r.c, int(r.s)) for r in sd]
-			lst=[]
+			#lst=[]
 			tp=[]
 			me=[]	
 			today=datetime.datetime.today()
@@ -126,25 +126,26 @@ class Stats(Resource):
 					uu.append((r[0], r[1], sm, sy, ss))	
 					if r[0] == self.x.vid:
 						ue=(r[0],r[1], sm, sy, ss)
-				lst.append((r[0],r[1],r[2],s))				
+				#lst.append((r[0],r[1],r[2],s))				
 				tp.append(str(r[0])+r[2])
 				if r[0] == self.x.vid:
-					me.append((r[0],r[1],r[2],s))					
+					#me.append((r[0],r[1],r[2],s))
+					me.append((r[2],s))				
 
-			rk=[]			
-			for r in me:
-				ar=1
-				at=1
+			#rk=[]			
+			#for r in me:
+			#	ar=1
+			#	at=1
+			#	
+			#	for rr in lst:	
+			#		if r[0] == rr[0]:						
+			#			continue
+			#		if r[2]==rr[2] and rr[3]>r[3]:
+			#			ar+=1
+			#			if r[1]==rr[1]:
+			#				at+=1
+			#	rk.append((r[2], r[3], ar, at))
 				
-				for rr in lst:	
-					if r[0] == rr[0]:						
-						continue
-					if r[2]==rr[2] and rr[3]>r[3]:
-						ar+=1
-						if r[1]==rr[1]:
-							at+=1
-				rk.append((r[2], r[3], ar, at))
-			print(ue,'----------------------------')	
 			th=[[ue[2],1,1],[ue[3],1,1],[ue[4],1,1]]
 			for u in uu:
 				if u[0]!=ue[0]:
@@ -160,8 +161,7 @@ class Stats(Resource):
 						th[2][1]+=1
 						if u[1]==ue[1]:
 							th[2][2]+=1
-			print(th)
-			return jsonify(dict({'lst':rk},**e0))
+			return jsonify(dict({'lst':me[1:],'me':th},**e0))
 		return e2
 api.add_resource(Stats,'/stats')
 
@@ -469,18 +469,19 @@ class Progress(Resource):
 		if self.x.vid:
 			page = request.args.get('page', type=int)
 			pps=[]
-			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.state, p.description,p.create_at 
+			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.state, p.description,p.commit,p.appeal, p.create_at 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' 
 				AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc; '''%self.x.vid
 			if page:
-				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at,p.state 
+				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.commit,p.appeal,p.create_at,p.state 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.proposer_id=%s and state!= '通过审核' AND p.create_at>curdate() - INTERVAL 7 day order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
 			pps = db.session.execute(sql)
 			pp=[]
 			for r in pps:
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state, "rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state, "rule":rule,"score":r.score,"classify":r.classify,
+					"refer":r.refer,"description":r.description,"commit":r.commit,"appeal":r.appeal, "create_at":str(r.create_at)[2:]})
 			
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
@@ -490,7 +491,7 @@ class Progress(Resource):
 		args=parser.parse_args()
 		dt=args['range'][1:-1].split(',')
 		if self.x.vid and self.x.did and self.x.tid:
-			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at,p.state 
+			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.commit,p.appeal,p.create_at,p.state 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id
 				left join rule as r on r.id=p.refer_id where p.proposer_id=%s and p.create_at between '%s' and '%s' and state!= '通过审核' order by p.create_at desc;  '''%(self.x.vid,dt[0],dt[1])
 			pps = db.session.execute(sql)
@@ -498,7 +499,8 @@ class Progress(Resource):
 			for r in pps:
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"tname":r.tname,"pname":pname,"state":r.state,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,
+				"description":r.description,"commit":r.commit,"appeal":r.appeal,"create_at":str(r.create_at)[2:]})
 			
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
@@ -629,16 +631,17 @@ class Score(Resource):
 		if self.x.vid:
 			page = request.args.get('page', type=int)
 			pps=[]
-			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p 
+			sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.commit,p.appeal,p.create_at from propose as p 
 				left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc;'''%self.x.vid
 			if page:
-				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
+				sql='''select p.id,v.name as pname,vb.name as tname,r.description as rule,p.score,p.classify,p.refer,p.description,p.commit,p.appeal,p.create_at from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and state= '通过审核' order by p.create_at desc limit %s,%s;'''%(self.x.vid,page,page*50)
 			pps = db.session.execute(sql)
 			pp=[]
 			for r in pps:
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,
+				"commit":r.commit,"appeal":r.appeal, "create_at":str(r.create_at)[2:]})
 
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
@@ -648,14 +651,15 @@ class Score(Resource):
 		args=parser.parse_args()
 		dt=args['range'][1:-1].split(',')
 		if self.x.vid and self.x.did and self.x.tid:
-			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.create_at 
+			sql='''select p.id,v.name as pname,vb.name as tname, r.description as rule,p.score,p.classify,p.refer,p.description,p.commit,p.appeal,p.create_at 
 				from propose as p left join visitor as v on p.proposer_id=v.id left join visitor as vb on vb.id=p.beneficiary_id left join rule as r on r.id=p.refer_id where p.beneficiary_id=%s and p.create_at between '%s' and '%s' and state= '通过审核' order by p.create_at desc;'''%(self.x.vid,dt[0],dt[1])
 			pps = db.session.execute(sql)
 			pp=[]
 			for r in pps:
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
-				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,"create_at":str(r.create_at)[2:]})
+				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,
+				"commit":r.commit,"appeal":r.appeal,"create_at":str(r.create_at)[2:]})
 
 			return jsonify(dict({"lst":pp},**e0))
 		return e2

@@ -14,10 +14,13 @@ class LotteryCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children:<Widget>[
-          Image(
-            width: MediaQuery.of(context).size.width*0.6,
-            image: AssetImage(img),
-            fit: BoxFit.cover,            
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image(
+              width: MediaQuery.of(context).size.width*0.6,
+              image: AssetImage(img),
+              fit: BoxFit.cover,            
+            ),
           ),
           Container(
             padding: EdgeInsets.only(bottom: 10),

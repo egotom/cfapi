@@ -9,9 +9,12 @@ class Score {
   final String classify;
   final String refer;
   final String description;
+  final String commit;
+  final String appeal;
   final String create_at;
 
-  Score({this.id,this.score,this.tname,this.pname, this.state, this.rule,this.classify,this.refer,this.description,this.create_at});
+  Score({this.id, this.score, this.tname, this.pname, this.state, this.rule, this.classify,
+          this.refer, this.description, this.commit, this.appeal, this.create_at});
 
   factory Score.fromJson(Map<String, dynamic> json){
     return Score(
@@ -20,11 +23,13 @@ class Score {
       tname : json['tname'],
       pname : json['pname'],
       state : json['state'],
-      rule:json['rule'],
-      classify:json['classify'],
-      refer:json['refer'],
+      rule: json['rule'],
+      classify: json['classify'],
+      refer: json['refer'],
       description:json['description'],
-      create_at:json['create_at']
+      commit: json['commit'],
+      appeal: json['appeal'],
+      create_at: json['create_at']
     );
   }
 

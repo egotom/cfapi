@@ -2,6 +2,9 @@ import 'package:cfapi/config/theme.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:intl/intl.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 class TSS {
   final DateTime time;
   final int sales;
@@ -14,7 +17,9 @@ class MyStats extends StatefulWidget {
 }
 
 class _MyStatsState extends State<MyStats> {
-  List lst=[];
+  bool loading =true;
+  List<TSS> lst=[];
+  List me=[['-','-','-'],['-','-','-'],['-','-','-']];
   @override
   void initState() {
     stats();
@@ -24,39 +29,33 @@ class _MyStatsState extends State<MyStats> {
   stats() async{
     Map<String,dynamic> result= await http('get','stats');
     if(result['error']==0){
-      setState(() {lst=result['lst'];});
-    }
+      List<TSS> data=[];
+      for(var ri in result['lst']){
+        DateTime tp=DateFormat("yyyy.MM").parse(ri[0]);
+        data.add(TSS(tp,ri[1]));
+      }
+      setState(() {
+        lst=data;
+        me=result['me'];
+        loading=false;
+      });
+    }    
   }
 
   @override
   Widget build(BuildContext context) {
-    var data = [
-      TSS(DateTime(2020, 1, 10), 15),
-      TSS(DateTime(2020, 2, 10), 20),
-      TSS(DateTime(2020, 3, 10), 38),
-      TSS(DateTime(2020, 4, 10), 50),
-      TSS(DateTime(2020, 5, 10), 38),
-      TSS(DateTime(2020, 6, 10), 48),
-      TSS(DateTime(2020, 7, 10), 30),
-      TSS(DateTime(2020, 8, 10), 35),
-      TSS(DateTime(2020, 9, 10), 38),
-      TSS(DateTime(2020, 10, 10), 50),
-      TSS(DateTime(2020, 11, 10), 58),
-      TSS(DateTime(2020, 12, 10), 40),
-    ];
-
     var series = [
       charts.Series<TSS, DateTime>(
         id: 'Sales',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
         domainFn: (TSS sales, _) => sales.time,
         measureFn: (TSS sales, _) => sales.sales,
-        data: data,
+        data: lst,
       ),
     ];
   
     return SingleChildScrollView(      
-      child: Column(
+      child:(loading)? SpinKitCircle(color: Colors.blue,size: 70): Column(
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -85,9 +84,9 @@ class _MyStatsState extends State<MyStats> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
+                              Text('${me[0][0]}' ,style:MyTheme().scdf),
+                              Text('${me[0][1]}' ,style:MyTheme().scdf),
+                              Text('${me[0][2]}' ,style:MyTheme().scdf),
                             ],
                           ),
                         ],
@@ -121,9 +120,9 @@ class _MyStatsState extends State<MyStats> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
+                              Text('${me[1][0]}' ,style:MyTheme().scdf),
+                              Text('${me[1][1]}' ,style:MyTheme().scdf),
+                              Text('${me[1][2]}' ,style:MyTheme().scdf),
                             ],
                           ),
                         ],
@@ -157,9 +156,9 @@ class _MyStatsState extends State<MyStats> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
-                              Text('--' ,style:MyTheme().scdf),
+                              Text('${me[2][0]}' ,style:MyTheme().scdf),
+                              Text('${me[2][1]}' ,style:MyTheme().scdf),
+                              Text('${me[2][2]}' ,style:MyTheme().scdf),
                             ],
                           ),
                         ],
