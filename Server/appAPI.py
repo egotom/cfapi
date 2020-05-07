@@ -641,7 +641,7 @@ class Score(Resource):
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
 				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,
-				"commit":r.commit,"appeal":r.appeal, "create_at":str(r.create_at)[2:]})
+				"commit":r.commit,"appeal":r.appeal, "create_at":str(r.create_at)[2:-3]})
 
 			return jsonify(dict({"lst":pp},**e0))
 		return e2
@@ -659,7 +659,7 @@ class Score(Resource):
 				pname=r.pname if r.pname else ''
 				rule=r.rule if r.rule else ''
 				pp.append({"id":r.id,"pname":pname,"tname":r.tname,"rule":rule,"score":r.score,"classify":r.classify,"refer":r.refer,"description":r.description,
-				"commit":r.commit,"appeal":r.appeal,"create_at":str(r.create_at)[2:]})
+				"commit":r.commit,"appeal":r.appeal,"create_at":str(r.create_at)[2:-3]})
 
 			return jsonify(dict({"lst":pp},**e0))
 		return e2

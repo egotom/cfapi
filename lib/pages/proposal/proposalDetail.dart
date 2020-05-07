@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class proposalDetail extends StatelessWidget {
-
   final Score score; 
   proposalDetail(this.score);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

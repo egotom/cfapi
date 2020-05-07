@@ -61,16 +61,16 @@ class _MyScoreState extends State<MyScore> {
                 crossAxisAlignment: CrossAxisAlignment.start,     
                 children:<Widget>[            
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,                      
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,                      
                     children: <Widget>[
                       Text('提交：${score.pname}'),
                       //Text('类型：${score.refer}'),
-                      Text('奖扣：${score.classify}${score.score}',
+                      Text('${score.classify}${score.score}',
                         style:TextStyle(
                           color: score.classify.contains('+')?Colors.red:Colors.green
                         )
-                      ), 
-                      Text('时间：${score.create_at}')
+                      ),
+                      Text('${score.create_at}'),
                     ],
                   ),
                   SizedBox(height:6.0),
