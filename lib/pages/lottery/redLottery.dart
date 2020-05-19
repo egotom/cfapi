@@ -1,7 +1,6 @@
 import 'package:cfapi/pages/widgets/tableItem.dart';
 import 'package:cfapi/services/authentication.dart';
 import 'package:flutter/material.dart';
-
 import 'lotteryCard.dart';
 
 class RedLottery extends StatefulWidget {
